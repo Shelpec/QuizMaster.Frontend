@@ -1,0 +1,18 @@
+<div class="container mt-4">
+    <h2>Login</h2>
+  
+    <form (ngSubmit)="onSubmit()">
+      <div class="mb-3">
+        <label>Email</label>
+        <input type="text" class="form-control" [(ngModel)]="email" name="email" required>
+      </div>
+      <div class="mb-3">
+        <label>Password</label>
+        <input type="password" class="form-control" [(ngModel)]="password" name="password" required>
+      </div>
+      <div *ngIf="errorMessage" class="text-danger">{{ errorMessage }}</div>
+  
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+  </div>
+  

@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
-import { QuestionsListComponent } from './questions-list/questions-list.component';
-import { RouterOutlet} from "@angular/router";
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, RouterLink } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  imports:[RouterOutlet]
+  imports: [CommonModule, RouterOutlet, RouterLink],
+  templateUrl: './app.component.html'
 })
 export class AppComponent {
   title(title: any) {
     throw new Error('Method not implemented.');
+  }
+  constructor(public authService: AuthService) {}
+
+  logout() {
+    this.authService.logout();
   }
 }

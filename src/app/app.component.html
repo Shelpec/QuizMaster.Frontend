@@ -1,6 +1,21 @@
 <!-- <h1>Hello, {{ title }}</h1> -->
 
+<!-- app.component.html -->
+
+  
 <!-- Используем компонент questions-list: -->
 <!-- <app-questions-list></app-questions-list> -->
-<router-outlet></router-outlet>
 
+<!-- app.component.html -->
+<div class="nav-bar">
+    <a routerLink="/">Home </a>
+    <ng-container *ngIf="!authService.isLoggedIn()">
+      <a routerLink="/login">Login </a>
+      <a routerLink="/register">Register</a>
+    </ng-container>
+    <ng-container *ngIf="authService.isLoggedIn()">
+      <button (click)="logout()">Logout</button>
+    </ng-container>
+  </div>
+  
+  <router-outlet></router-outlet>
