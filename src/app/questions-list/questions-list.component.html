@@ -1,0 +1,103 @@
+<h2 class="mb-3">Questions List</h2>
+
+<!-- Кнопка CREATE (открывает модалку) -->
+<button class="btn btn-primary mb-3"
+        data-bs-toggle="modal" 
+        data-bs-target="#questionModal"
+        (click)="openCreateModal()">
+  + Create Question
+</button>
+
+<!-- Список вопросов -->
+<ul class="list-group">
+  <li class="list-group-item d-flex justify-content-between align-items-start"
+      *ngFor="let q of questions">
+    
+    <div>
+      <div class="fw-bold">{{ q.text }}</div>
+      <div class="text-muted">Topic: {{ q.topicName }}</div>
+      <ul>
+        <li *ngFor="let ans of q.answerOptions">
+          {{ ans.text }} [Correct? {{ ans.isCorrect }}]
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Кнопки Edit/Delete -->
+    <div>
+      <button class="btn btn-sm btn-secondary me-2"
+              data-bs-toggle="modal" data-bs-target="#questionModal"
+              (click)="openEditModal(q)">
+        Edit
+      </button>
+      <button class="btn btn-sm btn-danger"
+              (click)="deleteQuestion(q)">
+        Delete
+      </button>
+    </div>
+  </li>
+</ul>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="questionModalLabel">
+          {{ isNew ? 'Create Question' : 'Edit Question' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Форма (Template-driven) -->
+        <form #questionForm="ngForm">
+          
+          <!-- Поле: текст вопроса -->
+          <div class="mb-3">
+            <label class="form-label">Question Text</label>
+            <input type="text" class="form-control" required
+                   [(ngModel)]="currentQuestion.text" 
+                   name="questionText" />
+          </div>
+
+          <div class="mb-2">Answer Options:</div>
+          <div *ngFor="let ans of currentQuestion.answerOptions; let i=index" class="row g-2 mb-2">
+            <div class="col-8">
+              <input type="text" class="form-control"
+                     placeholder="Option text"
+                     [(ngModel)]="ans.text"
+                     name="answerText{{i}}" />
+            </div>
+            <div class="col-4 d-flex align-items-center">
+              <label class="form-check-label me-2">IsCorrect?</label>
+              <input type="checkbox" class="form-check-input"
+                     [(ngModel)]="ans.isCorrect"
+                     name="answerIsCorrect{{i}}" />
+            </div>
+          </div>
+
+          <!-- Кнопка добавить вариант -->
+          <button type="button" class="btn btn-outline-secondary btn-sm"
+                  (click)="addAnswerOption()">
+            + Add Option
+          </button>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary"
+                data-bs-dismiss="modal"
+                (click)="saveQuestion()">
+          Save
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
