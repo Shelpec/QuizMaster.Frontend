@@ -1,29 +1,38 @@
+// src/app/question-details/question-details.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { QuestionsService, Question } from '../services/questions.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { QuestionsService } from '../services/questions.service';
+import { Question, UpdateQuestionDto } from '../dtos/question.dto';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-question-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './question-details.component.html'
 })
 export class QuestionDetailsComponent implements OnInit {
-  questionId!: number;       // id из маршрута
-  question?: Question;       // загруженный вопрос
+  questionId!: number;
+  question?: Question;
+
+  // Для редактирования
+  isEditing = false;
 
   constructor(
     private route: ActivatedRoute,
-    private questionsService: QuestionsService
+    private router: Router,
+    private questionsService: QuestionsService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // Считываем id из URL, например /questions/1001
     this.route.paramMap.subscribe(params => {
       const idParam = params.get('id');
       if (idParam) {
-        this.questionId = +idParam; // строку -> число
+        this.questionId = +idParam;
         this.loadQuestion();
       }
     });
@@ -33,9 +42,56 @@ export class QuestionDetailsComponent implements OnInit {
     this.questionsService.getQuestion(this.questionId).subscribe({
       next: (data) => {
         this.question = data;
-        console.log('Loaded question details:', data);
       },
       error: (err) => console.error('Error loading question details', err)
+    });
+  }
+
+  // Включаем/выключаем режим редактирования
+  toggleEdit() {
+    this.isEditing = !this.isEditing;
+  }
+
+  // Сохраняем изменения
+  saveChanges() {
+    if (!this.question) return;
+
+    const dto: UpdateQuestionDto = {
+      text: this.question.text,
+      answerOptions: this.question.answerOptions.map(ans => ({
+        id: ans.id,
+        text: ans.text,
+        isCorrect: ans.isCorrect
+      }))
+    };
+
+    this.questionsService.updateQuestion(this.questionId, dto).subscribe({
+      next: () => {
+        this.isEditing = false;
+        this.loadQuestion(); // перезагрузить, чтобы увидеть изменения
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  deleteQuestion() {
+    if (!confirm(`Delete question: "${this.question?.text}"?`)) return;
+
+    this.questionsService.deleteQuestion(this.questionId).subscribe({
+      next: () => {
+        // Вернуться на список вопросов
+        this.router.navigate(['/questions']);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  addAnswer() {
+    if (!this.question) return;
+    this.question.answerOptions.push({
+      id: 0,
+      text: '',
+      isCorrect: false
     });
   }
 }

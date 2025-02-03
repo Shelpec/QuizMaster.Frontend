@@ -1,7 +1,9 @@
 <div class="container mt-4">
-    <h2>Question Details</h2>
-  
-    <div *ngIf="question">
+  <h2>Question Details</h2>
+
+  <div *ngIf="question; else loadingBlock">
+    <!-- Если не редактируем, просто показываем -->
+    <div *ngIf="!isEditing">
       <h4>{{ question.text }}</h4>
       <p class="text-muted">Topic: {{ question.topicName }}</p>
       
@@ -10,8 +12,38 @@
           {{ ans.text }} [Correct? {{ ans.isCorrect }}]
         </li>
       </ul>
+
+      <!-- Кнопки Edit/Delete (только если логин?) -->
+      <div *ngIf="authService.isLoggedIn()">
+        <button class="btn btn-secondary me-2" (click)="toggleEdit()">Edit</button>
+        <button class="btn btn-danger" (click)="deleteQuestion()">Delete</button>
+      </div>
     </div>
-  
-    <div *ngIf="!question">Loading question...</div>
+
+    <!-- Режим редактирования -->
+    <div *ngIf="isEditing">
+      <div class="mb-3">
+        <label>Question Text</label>
+        <input type="text" class="form-control" [(ngModel)]="question.text" />
+      </div>
+      <ul>
+        <li *ngFor="let ans of question.answerOptions; let i=index" class="mb-2">
+          <input type="text" [(ngModel)]="ans.text" />
+          <label>
+            <input type="checkbox" [(ngModel)]="ans.isCorrect" />
+            IsCorrect?
+          </label>
+        </li>
+      </ul>
+      <button class="btn btn-sm btn-outline-primary mb-2" (click)="addAnswer()">+ Add Answer</button>
+      <br />
+
+      <button class="btn btn-success me-2" (click)="saveChanges()">Save</button>
+      <button class="btn btn-secondary" (click)="toggleEdit()">Cancel</button>
+    </div>
   </div>
-  
+
+  <ng-template #loadingBlock>
+    Loading question...
+  </ng-template>
+</div>

@@ -1,7 +1,12 @@
+// src/app/questions-list/questions-list.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // нужно для ngModel
-import { QuestionsService, Question, CreateQuestionDto, UpdateQuestionDto } from '../services/questions.service';
+import { FormsModule } from '@angular/forms';
+import { QuestionsService } from '../services/questions.service';
+import { Question, CreateQuestionDto, UpdateQuestionDto } from '../dtos/question.dto';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-questions-list',
@@ -12,6 +17,14 @@ import { QuestionsService, Question, CreateQuestionDto, UpdateQuestionDto } from
 })
 export class QuestionsListComponent implements OnInit {
   questions: Question[] = [];
+  searchId: number | null = null; // для поля поиска
+
+  // Захардкоженный список тем (Topic):
+  topics = [
+    { id: 1, name: 'Математика' },
+    { id: 2, name: 'География' },
+    { id: 3, name: 'История' },
+  ];
 
   // Для модального окна
   isNew: boolean = false;
@@ -20,7 +33,11 @@ export class QuestionsListComponent implements OnInit {
     answerOptions: []
   };
 
-  constructor(private questionsService: QuestionsService) {}
+  constructor(
+    private questionsService: QuestionsService,
+    public authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadAllQuestions();
@@ -30,12 +47,16 @@ export class QuestionsListComponent implements OnInit {
     this.questionsService.getAllQuestions().subscribe({
       next: (data) => {
         this.questions = data;
-        console.log('Questions:', data);
       },
-      error: (err) => {
-        console.error('Error loading questions', err);
-      }
+      error: (err) => console.error(err)
     });
+  }
+
+  // Поиск по ID => переходим на /questions/{id}
+  goToQuestion() {
+    if (this.searchId) {
+      this.router.navigate(['/questions', this.searchId]);
+    }
   }
 
   // Открыть модалку для создания
@@ -43,15 +64,10 @@ export class QuestionsListComponent implements OnInit {
     this.isNew = true;
     this.currentQuestion = {
       text: '',
+      topicId: 1, // По умолчанию выберем math
       answerOptions: [
-        {
-          text: '', isCorrect: false,
-          id: 0
-        },
-        {
-          text: '', isCorrect: false,
-          id: 0
-        }
+        { text: '', isCorrect: false, id: 0 },
+        { text: '', isCorrect: false, id: 0 }
       ]
     };
   }
@@ -59,9 +75,11 @@ export class QuestionsListComponent implements OnInit {
   // Открыть модалку для редактирования
   openEditModal(q: Question) {
     this.isNew = false;
+    // Копируем данные
     this.currentQuestion = {
       id: q.id,
       text: q.text,
+      topicId: q.topicId, // <-- берём TopicId
       answerOptions: q.answerOptions.map(a => ({ ...a }))
     };
   }
@@ -77,9 +95,9 @@ export class QuestionsListComponent implements OnInit {
     this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(a => a.text?.trim() !== '');
 
     if (this.isNew) {
-      // CREATE
       const dto: CreateQuestionDto = {
         text: this.currentQuestion.text!,
+        topicId: this.currentQuestion.topicId || 1, // Выбранный topicId
         answerOptions: this.currentQuestion.answerOptions?.map(a => ({
           text: a.text!,
           isCorrect: a.isCorrect ?? false
@@ -92,11 +110,11 @@ export class QuestionsListComponent implements OnInit {
       });
 
     } else {
-      // UPDATE
       if (!this.currentQuestion.id) return;
 
       const dto: UpdateQuestionDto = {
         text: this.currentQuestion.text!,
+        topicId: this.currentQuestion.topicId || 1,
         answerOptions: this.currentQuestion.answerOptions?.map(a => ({
           id: a.id,
           text: a.text!,
@@ -114,7 +132,6 @@ export class QuestionsListComponent implements OnInit {
   // Удалить вопрос
   deleteQuestion(q: Question) {
     if (!confirm(`Delete question: "${q.text}"?`)) return;
-
     this.questionsService.deleteQuestion(q.id).subscribe({
       next: () => this.loadAllQuestions(),
       error: (err) => console.error(err)
@@ -124,8 +141,7 @@ export class QuestionsListComponent implements OnInit {
   // Добавить вариант ответа
   addAnswerOption() {
     this.currentQuestion.answerOptions?.push({
-      text: '', isCorrect: false,
-      id: 0
+      text: '', isCorrect: false, id: 0
     });
   }
 }

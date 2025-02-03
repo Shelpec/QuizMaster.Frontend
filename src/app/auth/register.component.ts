@@ -1,8 +1,11 @@
+// src/app/auth/register.component.ts
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService, RegisterDto } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { RegisterDto } from '../dtos/auth.dto';
 
 @Component({
   selector: 'app-register',
@@ -30,17 +33,19 @@ export class RegisterComponent {
       firstName: this.firstName,
       lastName: this.lastName
     };
+
     this.authService.register(dto).subscribe({
-      next: (res) => {
-        console.log('Registered:', res);
+      next: () => {
         this.message = 'Registration successful!';
-        // Можно сразу логинить или редиректить
-        // this.router.navigate(['/login']);
       },
       error: (err) => {
         console.error(err);
         this.errorMessage = 'Registration failed';
       }
     });
+  }
+
+  goLogin() {
+    this.router.navigate(['/login']);
   }
 }

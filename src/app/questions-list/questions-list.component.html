@@ -1,10 +1,21 @@
 <h2 class="mb-3">Questions List</h2>
 
-<!-- Кнопка CREATE (открывает модалку) -->
+<!-- Поиск по ID — скрываем, если не авторизован -->
+<div class="row mb-3" *ngIf="authService.isLoggedIn()">
+  <div class="col-auto">
+    <input type="number" [(ngModel)]="searchId" placeholder="Enter Question ID" class="form-control" />
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary" (click)="goToQuestion()">Search by ID</button>
+  </div>
+</div>
+
+<!-- Кнопка CREATE (скрыта, если не авторизован) -->
 <button class="btn btn-primary mb-3"
         data-bs-toggle="modal" 
         data-bs-target="#questionModal"
-        (click)="openCreateModal()">
+        (click)="openCreateModal()"
+        *ngIf="authService.isLoggedIn()">
   + Create Question
 </button>
 
@@ -15,7 +26,7 @@
     
     <div>
       <div class="fw-bold">{{ q.text }}</div>
-      <div class="text-muted">Topic: {{ q.topicName }}</div>
+      <div class="text-muted">Topic: {{ q.topicName || '---' }}</div>
       <ul>
         <li *ngFor="let ans of q.answerOptions">
           {{ ans.text }} [Correct? {{ ans.isCorrect }}]
@@ -23,15 +34,17 @@
       </ul>
     </div>
     
-    <!-- Кнопки Edit/Delete -->
     <div>
+      <!-- Edit/Delete тоже скрываем, если не логин -->
       <button class="btn btn-sm btn-secondary me-2"
               data-bs-toggle="modal" data-bs-target="#questionModal"
-              (click)="openEditModal(q)">
+              (click)="openEditModal(q)"
+              *ngIf="authService.isLoggedIn()">
         Edit
       </button>
       <button class="btn btn-sm btn-danger"
-              (click)="deleteQuestion(q)">
+              (click)="deleteQuestion(q)"
+              *ngIf="authService.isLoggedIn()">
         Delete
       </button>
     </div>
@@ -51,15 +64,25 @@
       </div>
 
       <div class="modal-body">
-        <!-- Форма (Template-driven) -->
         <form #questionForm="ngForm">
           
-          <!-- Поле: текст вопроса -->
           <div class="mb-3">
             <label class="form-label">Question Text</label>
             <input type="text" class="form-control" required
                    [(ngModel)]="currentQuestion.text" 
                    name="questionText" />
+          </div>
+
+          <!-- Выбор TopicId из списка -->
+          <div class="mb-3">
+            <label class="form-label">Topic</label>
+            <select class="form-select"
+                    [(ngModel)]="currentQuestion.topicId" 
+                    name="topicId">
+              <option *ngFor="let t of topics" [ngValue]="t.id">
+                {{ t.name }}
+              </option>
+            </select>
           </div>
 
           <div class="mb-2">Answer Options:</div>
@@ -78,19 +101,14 @@
             </div>
           </div>
 
-          <!-- Кнопка добавить вариант -->
-          <button type="button" class="btn btn-outline-secondary btn-sm"
-                  (click)="addAnswerOption()">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addAnswerOption()">
             + Add Option
           </button>
-
         </form>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary"
                 data-bs-dismiss="modal"
                 (click)="saveQuestion()">
