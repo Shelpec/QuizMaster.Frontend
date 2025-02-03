@@ -3,6 +3,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
 import { AuthService } from '../services/auth.service';
 import { TestsService, TestDto } from '../services/tests.service';
 import { TopicsService } from '../services/topics.service';
@@ -16,12 +18,8 @@ import { TopicDto } from '../dtos/topic.dto';
 })
 export class TestListComponent implements OnInit {
   tests: TestDto[] = [];
-
-  // Список тем, чтобы выбрать при создании/редактировании
   topics: TopicDto[] = [];
-
-  // Модалка Test
-  isNew: boolean = false;
+  isNew = false;
   currentTest: Partial<TestDto> = {
     name: '',
     countOfQuestions: 1
@@ -30,14 +28,15 @@ export class TestListComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private testsService: TestsService,
-    private topicsService: TopicsService
+    private topicsService: TopicsService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadTests();
   }
 
-  loadTests(): void {
+  loadTests() {
     this.testsService.getAllTests().subscribe({
       next: (data: TestDto[]) => {
         this.tests = data;
@@ -47,18 +46,15 @@ export class TestListComponent implements OnInit {
     });
   }
 
-  loadTopics(): void {
+  loadTopics() {
     this.topicsService.getAll().subscribe({
-      next: (res: TopicDto[]) => {
-        this.topics = res;
-        console.log('Topics for test creation:', res);
-      },
-      error: (err: any) => console.error('Error loading topics', err)
+      next: (res: TopicDto[]) => (this.topics = res),
+      error: (err: any) => console.error(err)
     });
   }
 
-  // Открыть модалку для создания
-  openCreateModal(): void {
+  // Открыть модалку Create
+  openCreateModal() {
     this.isNew = true;
     this.currentTest = {
       name: '',
@@ -68,15 +64,15 @@ export class TestListComponent implements OnInit {
     this.loadTopics();
   }
 
-  // Открыть модалку для редактирования
-  openEditModal(t: TestDto): void {
+  // Открыть модалку Edit
+  openEditModal(t: TestDto) {
     this.isNew = false;
-    this.currentTest = { ...t }; // копируем
+    this.currentTest = { ...t };
     this.loadTopics();
   }
 
-  // Сохранить (create/update)
-  saveTest(): void {
+  // Save (Create/Update)
+  saveTest() {
     if (!this.currentTest.name) {
       alert('Test name required!');
       return;
@@ -87,20 +83,15 @@ export class TestListComponent implements OnInit {
     }
 
     if (this.isNew) {
-      // create
       this.testsService.createTest(
         this.currentTest.name!,
         this.currentTest.countOfQuestions,
         this.currentTest.topicId
       ).subscribe({
-        next: (created: TestDto) => {
-          console.log('Created Test:', created);
-          this.loadTests();
-        },
+        next: () => this.loadTests(),
         error: (err: any) => console.error('Error creating test', err)
       });
     } else {
-      // update
       if (!this.currentTest.id) return;
       this.testsService.updateTest(
         this.currentTest.id,
@@ -108,20 +99,23 @@ export class TestListComponent implements OnInit {
         this.currentTest.countOfQuestions,
         this.currentTest.topicId
       ).subscribe({
-        next: (updated: TestDto) => {
-          console.log('Updated Test:', updated);
-          this.loadTests();
-        },
+        next: () => this.loadTests(),
         error: (err: any) => console.error('Error updating test', err)
       });
     }
   }
 
-  deleteTest(t: TestDto): void {
+  deleteTest(t: TestDto) {
     if (!confirm(`Delete test: "${t.name}"?`)) return;
     this.testsService.deleteTest(t.id).subscribe({
       next: () => this.loadTests(),
       error: (err: any) => console.error('Error deleting test', err)
     });
+  }
+
+  // ======== Главное: кнопка START ========
+  onStartTest(t: TestDto) {
+    // при нажатии переходим на новый путь: /start-test/ID
+    this.router.navigate(['/start-test', t.id]);
   }
 }

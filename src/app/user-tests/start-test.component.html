@@ -1,0 +1,62 @@
+<!-- src/app/user-tests/start-test.component.html -->
+
+<div class="container mt-4" *ngIf="userTest; else loading">
+    <h3>Passing Test (UserTestId={{userTest.id}}, TestId={{userTest.testId}})</h3>
+    <p>DateCreated: {{ userTest.dateCreated }}</p>
+  
+    <form>
+      <div class="card mb-3" *ngFor="let utq of userTest.userTestQuestions; let i = index">
+        <div class="card-body">
+          <h5>{{ utq.questionText }}</h5>
+  
+          <!-- Проверим, несколько ли правильных в answerOptions -->
+          <ng-container *ngIf="hasMultipleCorrect(utq); else singleChoice">
+            <!-- MULTIPLE (checkbox) -->
+            <div *ngFor="let ans of utq.answerOptions">
+              <input type="checkbox"
+                     [checked]="selectedAnswersMap[utq.id].has(ans.id)"
+                     (change)="onSelectAnswer(utq.id, ans.id, $event, true)" />
+              {{ ans.text }}
+            </div>
+          </ng-container>
+  
+          <!-- SINGLE (radio) -->
+          <ng-template #singleChoice>
+            <div *ngFor="let ans of utq.answerOptions">
+              <input type="radio"
+                     name="q_{{utq.id}}"
+                     [checked]="selectedAnswersMap[utq.id].has(ans.id)"
+                     (change)="onSelectAnswer(utq.id, ans.id, $event, false)" />
+              {{ ans.text }}
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </form>
+  
+    <!-- Кнопки Save / Check -->
+    <div class="d-flex gap-3">
+      <button class="btn btn-primary" (click)="saveAnswers()">Save Answers</button>
+      <button class="btn btn-secondary" (click)="checkAnswers()">Check</button>
+    </div>
+  
+    <!-- Если получили result -->
+    <div class="mt-4" *ngIf="checkResult">
+      <h4>Check Result</h4>
+      <p>CorrectCount: {{ checkResult.correctCount }} / {{ checkResult.totalQuestions }}</p>
+      <ul>
+        <li *ngFor="let r of checkResult.results">
+          QID={{ r.questionId }},
+          Correct? {{ r.isCorrect }},
+          <b>CorrectAnswers:</b> {{r.correctAnswers.join(', ')}},
+          <b>YourAnswers:</b> {{r.selectedAnswers.join(', ')}}
+        </li>
+      </ul>
+    </div>
+  
+  </div>
+  
+  <ng-template #loading>
+    <p>Loading test...</p>
+  </ng-template>
+  

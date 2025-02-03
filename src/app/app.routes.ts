@@ -6,6 +6,7 @@ import { TestListComponent } from './test-list/test-list.component';
 import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
 import { QuestionDetailsComponent } from './question-details/question-details.component';
+import { StartTestComponent } from './user-tests/start-test.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'questions', pathMatch: 'full' },
@@ -14,5 +15,6 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'questions/:id', component: QuestionDetailsComponent },
+  { path: 'start-test/:testId', component: StartTestComponent },
   { path: '**', redirectTo: 'questions' }
 ];

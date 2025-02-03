@@ -1,23 +1,25 @@
-// src/app/interceptors/auth.interceptor.ts
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { AuthService } from '../services/auth.service';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
+  constructor() {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
+    // Пытаемся получить токен из localStorage
+    const token = localStorage.getItem('jwtToken'); 
+    // Если нашли токен, клонируем запрос и добавляем заголовок Authorization
     if (token) {
-      const cloned = req.clone({
+      const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
-      return next.handle(cloned);
+      return next.handle(authReq);
+    } else {
+      // Если нет токена, просто продолжаем без изменений
+      return next.handle(req);
     }
-    return next.handle(req);
   }
 }
