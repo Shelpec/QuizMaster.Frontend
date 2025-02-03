@@ -1,4 +1,11 @@
-<h2 class="mb-3">Questions List</h2>
+<!-- Кнопка "Go to Tests" (в центре), видна только если пользователь авторизован -->
+<div class="d-flex justify-content-center mb-3" *ngIf="authService.isLoggedIn()">
+  <button class="btn btn-success" (click)="goToTests()">
+    Go to Tests
+  </button>
+</div>
+
+<h2 class="mb-3 text-center">Questions List</h2>
 
 <!-- Кнопка Topics (если авторизован) -->
 <button class="btn btn-outline-info mb-2" *ngIf="authService.isLoggedIn()"
@@ -70,6 +77,7 @@
 
       <div class="modal-body">
         <form #questionForm="ngForm">
+          <!-- TEXT -->
           <div class="mb-3">
             <label class="form-label">Question Text</label>
             <input type="text" class="form-control" required
@@ -87,6 +95,7 @@
             </select>
           </div>
 
+          <!-- ANSWER OPTIONS -->
           <div class="mb-2">Answer Options:</div>
           <div *ngFor="let ans of currentQuestion.answerOptions; let i=index" class="row g-2 mb-2">
             <div class="col-8">

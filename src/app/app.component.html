@@ -1,21 +1,26 @@
-<!-- <h1>Hello, {{ title }}</h1> -->
-
 <!-- app.component.html -->
 
+<!-- Пример (чтобы кнопка Tests была по центру, 
+     можно использовать стили/Bootstrap как угодно) -->
+     <div class="nav-bar p-2 bg-light mb-3" style="display: flex; justify-content: center;">
   
-<!-- Используем компонент questions-list: -->
-<!-- <app-questions-list></app-questions-list> -->
-
-<!-- app.component.html -->
-<div class="nav-bar">
-    <a routerLink="/">Home </a>
-    <ng-container *ngIf="!authService.isLoggedIn()">
-      <a routerLink="/login">Login </a>
-      <a routerLink="/register">Register</a>
-    </ng-container>
-    <ng-container *ngIf="authService.isLoggedIn()">
-      <button (click)="logout()">Logout</button>
-    </ng-container>
-  </div>
-  
-  <router-outlet></router-outlet>
+      <!-- Home (questions) -->
+      <a routerLink="/questions" class="btn btn-link">Home</a>
+    
+      <!-- Tests (по центру) -->
+      <a routerLink="/tests" class="btn btn-link mx-3">
+        Tests
+      </a>
+    
+      <ng-container *ngIf="!authService.isLoggedIn()">
+        <a routerLink="/login" class="btn btn-link">Login</a>
+        <a routerLink="/register" class="btn btn-link">Register</a>
+      </ng-container>
+    
+      <ng-container *ngIf="authService.isLoggedIn()">
+        <button class="btn btn-secondary" (click)="logout()">Logout</button>
+      </ng-container>
+    </div>
+    
+    <router-outlet></router-outlet>
+    

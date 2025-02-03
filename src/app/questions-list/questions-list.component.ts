@@ -1,5 +1,3 @@
-// src/app/questions-list/questions-list.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,8 +7,8 @@ import { AuthService } from '../services/auth.service';
 import { QuestionsService } from '../services/questions.service';
 import { TopicsService } from '../services/topics.service';
 
-import { Question, CreateQuestionDto, UpdateQuestionDto } from '../dtos/question.dto';
-import { TopicDto, CreateTopicDto, UpdateTopicDto } from '../dtos/topic.dto';
+import { Question } from '../dtos/question.dto';
+import { TopicDto } from '../dtos/topic.dto';
 
 @Component({
   selector: 'app-questions-list',
@@ -22,19 +20,22 @@ import { TopicDto, CreateTopicDto, UpdateTopicDto } from '../dtos/topic.dto';
 export class QuestionsListComponent implements OnInit {
   // Список вопросов
   questions: Question[] = [];
-  
-  // Поле для поиска по ID вопроса
+
+  // Поле для поиска по ID
   searchId: number | null = null;
 
-  // ----- Управление топиками (Topics) -----
-  showTopicsModal = false;        // Отображать ли модалку «Manage Topics»
-  topics: TopicDto[] = [];        // Список тем, полученный с сервера
-  isTopicNew = false;             // Режим "создание" или "редактирование"
+  // ---- Topics modal ----
+  showTopicsModal = false;
+  topics: TopicDto[] = [];
+  isTopicNew = false;
   currentTopic: Partial<TopicDto> = { name: '' };
 
-  // ----- Управление вопросами (Questions) -----
-  isNew: boolean = false;         // Режим создания или редактирования вопроса
-  currentQuestion: Partial<Question> = { text: '', answerOptions: [] };
+  // ---- Question create/update ----
+  isNew = false;
+  currentQuestion: Partial<Question> = {
+    text: '',
+    answerOptions: []
+  };
 
   constructor(
     public authService: AuthService,
@@ -44,38 +45,47 @@ export class QuestionsListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Загружаем список вопросов при старте
     this.loadAllQuestions();
   }
 
   // =========================================
-  // Загрузка вопросов
+  // КНОПКА "Go to Tests"
   // =========================================
-  loadAllQuestions() {
+  goToTests(): void {
+    // Переходим на /tests
+    this.router.navigate(['/tests']);
+  }
+
+  // =========================================
+  // Загрузка списка вопросов
+  // =========================================
+  loadAllQuestions(): void {
     this.questionsService.getAllQuestions().subscribe({
       next: (data) => {
         this.questions = data;
         console.log('Questions loaded:', data);
       },
-      error: (err) => console.error('Error loading questions', err)
+      error: (err) => {
+        console.error('Error loading questions', err);
+      }
     });
   }
 
   // =========================================
-  // Поиск вопроса по ID
+  // Поиск по ID вопроса
   // =========================================
-  goToQuestion() {
+  goToQuestion(): void {
     if (this.searchId) {
+      // Переход на /questions/123
       this.router.navigate(['/questions', this.searchId]);
     }
   }
 
   // =========================================
-  // Открыть модалку создания нового вопроса
+  // Открыть модалку "Create Question"
   // =========================================
-  openCreateModal() {
+  openCreateModal(): void {
     this.isNew = true;
-    // Сбрасываем данные вопроса
     this.currentQuestion = {
       text: '',
       topicId: undefined,
@@ -84,48 +94,48 @@ export class QuestionsListComponent implements OnInit {
         { text: '', isCorrect: false, id: 0 }
       ]
     };
-    // Загружаем список тем, чтобы пользователь мог выбрать тему
+    // Загрузим темы
     this.loadTopics();
   }
 
   // =========================================
-  // Открыть модалку для редактирования вопроса
+  // Открыть модалку "Edit Question"
   // =========================================
-  openEditModal(q: Question) {
+  openEditModal(q: Question): void {
     this.isNew = false;
+    // Копируем поля
     this.currentQuestion = {
       id: q.id,
       text: q.text,
       topicId: q.topicId,
       answerOptions: q.answerOptions.map(a => ({ ...a }))
     };
-    // Тоже загрузим список тем, чтобы были актуальные
     this.loadTopics();
   }
 
   // =========================================
-  // Сохранить вопрос (Create/Update)
+  // Сохранить (Create / Update)
   // =========================================
-  saveQuestion() {
+  saveQuestion(): void {
     if (!this.currentQuestion.text) {
       alert('Question text is required');
       return;
     }
-
-    // Удаляем пустые варианты ответа
-    this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(a => a.text?.trim() !== '');
+    // Фильтр пустых
+    this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(
+      a => a.text?.trim() !== ''
+    );
 
     if (this.isNew) {
-      // Создание
-      const dto: CreateQuestionDto = {
+      // Create
+      const dto = {
         text: this.currentQuestion.text!,
-        topicId: this.currentQuestion.topicId || 0, // 0, если не выбрали
+        topicId: this.currentQuestion.topicId || 0,
         answerOptions: this.currentQuestion.answerOptions?.map(a => ({
           text: a.text!,
           isCorrect: a.isCorrect ?? false
         })) || []
       };
-
       this.questionsService.createQuestion(dto).subscribe({
         next: () => {
           this.loadAllQuestions();
@@ -133,10 +143,9 @@ export class QuestionsListComponent implements OnInit {
         error: (err) => console.error('Error creating question', err)
       });
     } else {
-      // Редактирование
+      // Update
       if (!this.currentQuestion.id) return;
-
-      const dto: UpdateQuestionDto = {
+      const dto = {
         text: this.currentQuestion.text!,
         topicId: this.currentQuestion.topicId || 0,
         answerOptions: this.currentQuestion.answerOptions?.map(a => ({
@@ -145,7 +154,6 @@ export class QuestionsListComponent implements OnInit {
           isCorrect: a.isCorrect ?? false
         })) || []
       };
-
       this.questionsService.updateQuestion(this.currentQuestion.id, dto).subscribe({
         next: () => {
           this.loadAllQuestions();
@@ -158,7 +166,7 @@ export class QuestionsListComponent implements OnInit {
   // =========================================
   // Удалить вопрос
   // =========================================
-  deleteQuestion(q: Question) {
+  deleteQuestion(q: Question): void {
     if (!confirm(`Delete question: "${q.text}"?`)) return;
     this.questionsService.deleteQuestion(q.id).subscribe({
       next: () => {
@@ -168,26 +176,27 @@ export class QuestionsListComponent implements OnInit {
     });
   }
 
-  // Добавить поле варианта ответа
-  addAnswerOption() {
+  addAnswerOption(): void {
     this.currentQuestion.answerOptions?.push({
-      text: '', isCorrect: false, id: 0
+      text: '',
+      isCorrect: false,
+      id: 0
     });
   }
 
   // =========================================
-  // Управление модалкой "Manage Topics"
+  // Topics modal
   // =========================================
-  openTopicsModal() {
+  openTopicsModal(): void {
     this.showTopicsModal = true;
     this.loadTopics();
   }
 
-  closeTopicsModal() {
+  closeTopicsModal(): void {
     this.showTopicsModal = false;
   }
 
-  loadTopics() {
+  loadTopics(): void {
     this.topicsService.getAll().subscribe({
       next: (data) => {
         this.topics = data;
@@ -197,51 +206,43 @@ export class QuestionsListComponent implements OnInit {
     });
   }
 
-  newTopic() {
+  newTopic(): void {
     this.isTopicNew = true;
     this.currentTopic = { name: '' };
   }
 
-  editTopic(topic: TopicDto) {
+  editTopic(topic: TopicDto): void {
     this.isTopicNew = false;
     this.currentTopic = { id: topic.id, name: topic.name };
   }
 
-  saveTopic() {
+  saveTopic(): void {
     if (!this.currentTopic.name) {
       alert('Topic name is required');
       return;
     }
-
     if (this.isTopicNew) {
-      // Создание темы
-      const dto: CreateTopicDto = { name: this.currentTopic.name };
+      // CREATE
+      const dto = { name: this.currentTopic.name };
       this.topicsService.create(dto).subscribe({
-        next: () => {
-          // Перезагружаем список тем
-          this.loadTopics();
-        },
+        next: () => this.loadTopics(),
         error: (err) => console.error('Error creating topic', err)
       });
     } else {
-      // Редактирование темы
+      // UPDATE
       if (!this.currentTopic.id) return;
-      const dto: UpdateTopicDto = { name: this.currentTopic.name! };
+      const dto = { name: this.currentTopic.name! };
       this.topicsService.update(this.currentTopic.id, dto).subscribe({
-        next: () => {
-          this.loadTopics();
-        },
+        next: () => this.loadTopics(),
         error: (err) => console.error('Error updating topic', err)
       });
     }
   }
 
-  deleteTopic(topic: TopicDto) {
+  deleteTopic(topic: TopicDto): void {
     if (!confirm(`Delete topic: "${topic.name}"?`)) return;
     this.topicsService.delete(topic.id).subscribe({
-      next: () => {
-        this.loadTopics();
-      },
+      next: () => this.loadTopics(),
       error: (err) => console.error('Error deleting topic', err)
     });
   }
