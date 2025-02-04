@@ -1,62 +1,76 @@
-<!-- src/app/user-tests/start-test.component.html -->
-
 <div class="container mt-4" *ngIf="userTest; else loading">
-    <h3>Passing Test (UserTestId={{userTest.id}}, TestId={{userTest.testId}})</h3>
-    <p>DateCreated: {{ userTest.dateCreated }}</p>
-  
-    <form>
-      <div class="card mb-3" *ngFor="let utq of userTest.userTestQuestions; let i = index">
-        <div class="card-body">
-          <h5>{{ utq.questionText }}</h5>
-  
-          <!-- Проверим, несколько ли правильных в answerOptions -->
-          <ng-container *ngIf="hasMultipleCorrect(utq); else singleChoice">
-            <!-- MULTIPLE (checkbox) -->
-            <div *ngFor="let ans of utq.answerOptions">
-              <input type="checkbox"
-                     [checked]="selectedAnswersMap[utq.id].has(ans.id)"
-                     (change)="onSelectAnswer(utq.id, ans.id, $event, true)" />
+  <h3>Passing Test (UserTestId={{ userTest.id }}, TestId={{ userTest.testId }})</h3>
+  <p>DateCreated: {{ userTest.dateCreated }}</p>
+
+  <!-- Форма с вопросами -->
+  <form>
+    <!-- Каждое вопрос-ответ — в .card -->
+    <div class="card question-card"
+         *ngFor="let utq of userTest.userTestQuestions; let i = index">
+      <div class="card-body">
+        <h5>{{ utq.questionText }}</h5>
+
+        <!-- Если несколько правильных -> чекбоксы, иначе -> радио -->
+        <ng-container *ngIf="hasMultipleCorrect(utq); else singleChoice">
+          <!-- MULTIPLE (checkbox) -->
+          <div class="form-check mb-1"
+               *ngFor="let ans of utq.answerOptions">
+            <input type="checkbox"
+                   class="form-check-input"
+                   [checked]="selectedAnswersMap[utq.id].has(ans.id)"
+                   (change)="onSelectAnswer(utq.id, ans.id, $event, true)"
+                   [ngClass]="getAnswerClass(utq.id, ans.id)" />
+            <label class="form-check-label"
+                   [ngClass]="getAnswerClass(utq.id, ans.id)">
               {{ ans.text }}
-            </div>
-          </ng-container>
-  
-          <!-- SINGLE (radio) -->
-          <ng-template #singleChoice>
-            <div *ngFor="let ans of utq.answerOptions">
-              <input type="radio"
-                     name="q_{{utq.id}}"
-                     [checked]="selectedAnswersMap[utq.id].has(ans.id)"
-                     (change)="onSelectAnswer(utq.id, ans.id, $event, false)" />
+            </label>
+          </div>
+        </ng-container>
+
+        <!-- SINGLE (radio) -->
+        <ng-template #singleChoice>
+          <div class="form-check mb-1"
+               *ngFor="let ans of utq.answerOptions">
+            <input type="radio"
+                   class="form-check-input"
+                   name="q_{{ utq.id }}"
+                   [checked]="selectedAnswersMap[utq.id].has(ans.id)"
+                   (change)="onSelectAnswer(utq.id, ans.id, $event, false)"
+                   [ngClass]="getAnswerClass(utq.id, ans.id)" />
+            <label class="form-check-label"
+                   [ngClass]="getAnswerClass(utq.id, ans.id)">
               {{ ans.text }}
-            </div>
-          </ng-template>
-        </div>
+            </label>
+          </div>
+        </ng-template>
       </div>
-    </form>
-  
-    <!-- Кнопки Save / Check -->
-    <div class="d-flex gap-3">
-      <button class="btn btn-primary" (click)="saveAnswers()">Save Answers</button>
-      <button class="btn btn-secondary" (click)="checkAnswers()">Check</button>
     </div>
-  
-    <!-- Если получили result -->
-    <div class="mt-4" *ngIf="checkResult">
-      <h4>Check Result</h4>
-      <p>CorrectCount: {{ checkResult.correctCount }} / {{ checkResult.totalQuestions }}</p>
-      <ul>
-        <li *ngFor="let r of checkResult.results">
-          QID={{ r.questionId }},
-          Correct? {{ r.isCorrect }},
-          <b>CorrectAnswers:</b> {{r.correctAnswers.join(', ')}},
-          <b>YourAnswers:</b> {{r.selectedAnswers.join(', ')}}
-        </li>
-      </ul>
-    </div>
-  
+  </form>
+
+  <!-- Кнопка "Finish & Check" -->
+  <div class="d-flex gap-3 mt-3">
+    <button class="btn btn-primary"
+            (click)="onFinish()">
+      Finish & Check
+    </button>
   </div>
-  
-  <ng-template #loading>
-    <p>Loading test...</p>
-  </ng-template>
-  
+
+  <!-- Блок с результатом после проверки -->
+  <div class="mt-4" *ngIf="checkResult">
+    <h4>Check Result</h4>
+    <p>
+      CorrectCount: {{ checkResult.correctCount }}
+      / {{ checkResult.totalQuestions }}
+    </p>
+
+    <!-- Кнопка назад к списку тестов -->
+    <button class="btn btn-outline-secondary"
+            (click)="goBackToTests()">
+      Back to Tests
+    </button>
+  </div>
+</div>
+
+<ng-template #loading>
+  <p>Loading test...</p>
+</ng-template>

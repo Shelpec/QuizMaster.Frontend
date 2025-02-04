@@ -1,5 +1,3 @@
-// src/app/test-list/test-list.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +17,7 @@ import { TopicDto } from '../dtos/topic.dto';
 export class TestListComponent implements OnInit {
   tests: TestDto[] = [];
   topics: TopicDto[] = [];
+
   isNew = false;
   currentTest: Partial<TestDto> = {
     name: '',
@@ -42,18 +41,18 @@ export class TestListComponent implements OnInit {
         this.tests = data;
         console.log('Tests loaded:', data);
       },
-      error: (err: any) => console.error('Error loading tests', err)
+      error: (err) => console.error('Error loading tests', err)
     });
   }
 
   loadTopics() {
     this.topicsService.getAll().subscribe({
-      next: (res: TopicDto[]) => (this.topics = res),
-      error: (err: any) => console.error(err)
+      next: (res) => (this.topics = res),
+      error: (err) => console.error(err)
     });
   }
 
-  // Открыть модалку Create
+  /** Кнопка +Create — открываем модалку */
   openCreateModal() {
     this.isNew = true;
     this.currentTest = {
@@ -64,14 +63,14 @@ export class TestListComponent implements OnInit {
     this.loadTopics();
   }
 
-  // Открыть модалку Edit
+  /** Нажали Edit (подставляем данные в currentTest) */
   openEditModal(t: TestDto) {
     this.isNew = false;
     this.currentTest = { ...t };
     this.loadTopics();
   }
 
-  // Save (Create/Update)
+  /** Сохранение (Create/Update) */
   saveTest() {
     if (!this.currentTest.name) {
       alert('Test name required!');
@@ -83,24 +82,27 @@ export class TestListComponent implements OnInit {
     }
 
     if (this.isNew) {
+      // CREATE
       this.testsService.createTest(
         this.currentTest.name!,
-        this.currentTest.countOfQuestions,
+        this.currentTest.countOfQuestions!,
         this.currentTest.topicId
       ).subscribe({
         next: () => this.loadTests(),
-        error: (err: any) => console.error('Error creating test', err)
+        error: (err) => console.error('Error creating test', err)
       });
+
     } else {
+      // UPDATE
       if (!this.currentTest.id) return;
       this.testsService.updateTest(
         this.currentTest.id,
         this.currentTest.name!,
-        this.currentTest.countOfQuestions,
+        this.currentTest.countOfQuestions!,
         this.currentTest.topicId
       ).subscribe({
         next: () => this.loadTests(),
-        error: (err: any) => console.error('Error updating test', err)
+        error: (err) => console.error('Error updating test', err)
       });
     }
   }
@@ -109,13 +111,13 @@ export class TestListComponent implements OnInit {
     if (!confirm(`Delete test: "${t.name}"?`)) return;
     this.testsService.deleteTest(t.id).subscribe({
       next: () => this.loadTests(),
-      error: (err: any) => console.error('Error deleting test', err)
+      error: (err) => console.error('Error deleting test', err)
     });
   }
 
-  // ======== Главное: кнопка START ========
+  /** Нажатие кнопки "Start" */
   onStartTest(t: TestDto) {
-    // при нажатии переходим на новый путь: /start-test/ID
+    // Переходим на страницу /start-test/ID
     this.router.navigate(['/start-test', t.id]);
   }
 }

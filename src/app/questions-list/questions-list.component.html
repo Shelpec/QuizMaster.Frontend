@@ -1,3 +1,7 @@
+
+<!-- Пример: всё содержимое questions-list в обёртку -->
+<div class="container mt-4">
+  
 <!-- Кнопка "Go to Tests" (в центре), видна только если пользователь авторизован -->
 <div class="d-flex justify-content-center mb-3" *ngIf="authService.isLoggedIn()">
   <button class="btn btn-success" (click)="goToTests()">
@@ -5,6 +9,7 @@
   </button>
 </div>
 
+<div class="p-3 border rounded" style="background-color: #999999;">
 <h2 class="mb-3 text-center">Questions List</h2>
 
 <!-- Кнопка Topics (если авторизован) -->
@@ -171,4 +176,6 @@
 
     </div>
   </div>
+</div>
+</div>
 </div>

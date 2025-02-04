@@ -1,60 +1,118 @@
 <div class="container mt-4">
-    <h2 class="mb-3">Tests</h2>
-  
-    <!-- Кнопка Create -->
-    <button class="btn btn-primary mb-3"
-            data-bs-toggle="modal"
-            data-bs-target="#testModal"
-            (click)="openCreateModal()"
-            *ngIf="authService.isLoggedIn()">
-      + Create Test
-    </button>
-  
-    <!-- Список тестов -->
-    <ul class="list-group">
-      <li class="list-group-item d-flex justify-content-between align-items-center"
-          *ngFor="let t of tests">
-        <div>
-          <div class="fw-bold">{{ t.name }}</div>
-          <div>Count: {{ t.countOfQuestions }}</div>
-          <div>Topic: {{ t.topicName || '---' }}</div>
+  <h2 class="mb-3 text-center">List of Tests</h2>
+
+  <!-- Кнопка Create Test -->
+  <button class="btn btn-primary mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#testModal"
+          (click)="openCreateModal()"
+          *ngIf="authService.isLoggedIn()">
+    + Create Test
+  </button>
+
+  <!-- Список тестов -->
+  <ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between align-items-center"
+        *ngFor="let t of tests">
+      <div>
+        <h5>{{ t.name }}</h5>
+        <p>
+          <strong>Count:</strong> {{ t.countOfQuestions }} <br>
+          <strong>Topic:</strong> {{ t.topicName || '---' }} <br>
           <small class="text-muted">CreatedAt: {{ t.createdAt }}</small>
-        </div>
-  
-        <div>
-          <!-- Кнопки Edit/Delete - уже были -->
-          <button class="btn btn-sm btn-secondary me-2"
-                  data-bs-toggle="modal" data-bs-target="#testModal"
-                  (click)="openEditModal(t)"
-                  *ngIf="authService.isLoggedIn()">
-            Edit
-          </button>
-          <button class="btn btn-sm btn-danger me-2"
-                  (click)="deleteTest(t)"
-                  *ngIf="authService.isLoggedIn()">
-            Delete
-          </button>
-  
-          <!-- Новая кнопка START -->
-          <button class="btn btn-sm btn-success"
-                  (click)="onStartTest(t)"
-                  *ngIf="authService.isLoggedIn()">
-            Start
-          </button>
-        </div>
-      </li>
-    </ul>
-  
-    <!-- Modal for Create/Edit Test -->
-    <!-- (остался без изменений) -->
-    <div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="testModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-  
-          <!-- ... -->
-  
-        </div>
+        </p>
       </div>
+
+      <div class="d-flex gap-2">
+        <!-- Кнопка Edit -->
+        <button class="btn btn-sm btn-secondary"
+                data-bs-toggle="modal" data-bs-target="#testModal"
+                (click)="openEditModal(t)"
+                *ngIf="authService.isLoggedIn()">
+          Edit
+        </button>
+
+        <!-- Кнопка Delete -->
+        <button class="btn btn-sm btn-danger"
+                (click)="deleteTest(t)"
+                *ngIf="authService.isLoggedIn()">
+          Delete
+        </button>
+
+        <!-- Кнопка START (перейти к StartTestComponent) -->
+        <button class="btn btn-sm btn-success"
+                (click)="onStartTest(t)"
+                *ngIf="authService.isLoggedIn()">
+          Start
+        </button>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<!-- Модальное окно для Create/Edit Test -->
+<div class="modal fade"
+     id="testModal"
+     tabindex="-1"
+     aria-labelledby="testModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="testModalLabel">
+          {{ isNew ? 'Create Test' : 'Edit Test' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Test Name</label>
+            <input type="text" class="form-control"
+                   [(ngModel)]="currentTest.name"
+                   name="testName"/>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Count Of Questions</label>
+            <input type="number" class="form-control"
+                   [(ngModel)]="currentTest.countOfQuestions"
+                   name="countOfQuestions" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Topic</label>
+            <select class="form-select"
+                    [(ngModel)]="currentTest.topicId"
+                    name="topicId">
+              <option *ngFor="let t of topics" [value]="t.id">
+                {{ t.name }}
+              </option>
+            </select>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <!-- Кнопка Close -->
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+          Close
+        </button>
+
+        <!-- Кнопка Save -->
+        <button type="button"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                (click)="saveTest()">
+          Save
+        </button>
+      </div>
+
     </div>
   </div>
-  
+</div>
