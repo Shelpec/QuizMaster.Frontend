@@ -1,0 +1,21 @@
+.container {
+    max-width: 900px;
+  }
+  
+  // Для «правильного» / «неправильного»
+  .selected-correct {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0 4px;
+    border-radius: 2px;
+    margin-left: 2px;
+  }
+  
+  .selected-wrong {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0 4px;
+    border-radius: 2px;
+    margin-left: 2px;
+  }
+  

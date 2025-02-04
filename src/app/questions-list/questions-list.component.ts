@@ -15,7 +15,7 @@ import { TopicDto } from '../dtos/topic.dto';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './questions-list.component.html',
-  styleUrls: ['./questions-list.component.css']
+  styleUrls: ['./questions-list.component.scss']
 })
 export class QuestionsListComponent implements OnInit {
   // Список вопросов
@@ -246,4 +246,9 @@ export class QuestionsListComponent implements OnInit {
       error: (err) => console.error('Error deleting topic', err)
     });
   }
+
+  goToHistory() {
+    this.router.navigate(['/history-user-tests']);
+  }
+  
 }

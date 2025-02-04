@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { UserTestHistoryDto } from '../dtos/user-test-history.dto';
 
 export interface AnswerOptionDto {
   id: number;
@@ -51,8 +52,30 @@ export class UserTestsService {
 
   constructor(private http: HttpClient) {}
 
+  /** Получить все userTest'ы в «расширенном» виде (all-full) */
+  getAllFull(): Observable<UserTestHistoryDto[]> {
+    return this.http.get<UserTestHistoryDto[]>(`${this.baseUrl}/all-full`);
+  }
+    /** Поиск конкретного userTestId (full) */
+  getByIdFull(userTestId: number): Observable<UserTestHistoryDto> {
+    return this.http.get<UserTestHistoryDto>(`${this.baseUrl}/${userTestId}`);
+  }
+
+  /** Поиск по email (full) */
+  getByUserEmail(email: string): Observable<UserTestHistoryDto[]> {
+    // например, /api/UserTests/by-userEmail?email=some@domain
+    return this.http.get<UserTestHistoryDto[]>(`${this.baseUrl}/by-userEmail?email=${encodeURIComponent(email)}`);
+  }
+
+  /** Удалить userTest */
+  deleteUserTest(userTestId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${userTestId}`);
+  }
+
   /** Запускаем прохождение теста */
   startTest(testId: number): Observable<UserTestDto> {
     return this.http.post<UserTestDto>(`${this.baseUrl}/start/${testId}`, {});
   }
+
+  
 }

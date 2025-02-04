@@ -2,12 +2,16 @@
 <!-- Пример: всё содержимое questions-list в обёртку -->
 <div class="container mt-4">
   
-<!-- Кнопка "Go to Tests" (в центре), видна только если пользователь авторизован -->
-<div class="d-flex justify-content-center mb-3" *ngIf="authService.isLoggedIn()">
+<!-- вверху, рядом с Go to Tests -->
+<div class="d-flex justify-content-center gap-3 mb-3" *ngIf="authService.isLoggedIn()">
   <button class="btn btn-success" (click)="goToTests()">
     Go to Tests
   </button>
+  <button class="btn btn-warning" (click)="goToHistory()">
+    History User Tests
+  </button>
 </div>
+
 
 <div class="p-3 border rounded" style="background-color: #999999;">
 <h2 class="mb-3 text-center">Questions List</h2>
