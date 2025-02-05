@@ -13,14 +13,14 @@
         </li>
       </ul>
 
-      <!-- Кнопки Edit/Delete (только если логин?) -->
-      <div *ngIf="authService.isLoggedIn()">
+      <!-- Кнопки Edit/Delete (только если logged in и isAdmin) -->
+      <div *ngIf="authService.isLoggedIn() && authService.isAdmin()">
         <button class="btn btn-secondary me-2" (click)="toggleEdit()">Edit</button>
         <button class="btn btn-danger" (click)="deleteQuestion()">Delete</button>
       </div>
     </div>
 
-    <!-- Режим редактирования -->
+    <!-- Режим редактирования (тоже только Admin) -->
     <div *ngIf="isEditing">
       <div class="mb-3">
         <label>Question Text</label>

@@ -39,7 +39,6 @@ export class TestListComponent implements OnInit {
     this.testsService.getAllTests().subscribe({
       next: (data: TestDto[]) => {
         this.tests = data;
-        console.log('Tests loaded:', data);
       },
       error: (err) => console.error('Error loading tests', err)
     });
@@ -52,7 +51,6 @@ export class TestListComponent implements OnInit {
     });
   }
 
-  /** Кнопка +Create — открываем модалку */
   openCreateModal() {
     this.isNew = true;
     this.currentTest = {
@@ -63,14 +61,12 @@ export class TestListComponent implements OnInit {
     this.loadTopics();
   }
 
-  /** Нажали Edit (подставляем данные в currentTest) */
   openEditModal(t: TestDto) {
     this.isNew = false;
     this.currentTest = { ...t };
     this.loadTopics();
   }
 
-  /** Сохранение (Create/Update) */
   saveTest() {
     if (!this.currentTest.name) {
       alert('Test name required!');
@@ -82,28 +78,29 @@ export class TestListComponent implements OnInit {
     }
 
     if (this.isNew) {
-      // CREATE
-      this.testsService.createTest(
-        this.currentTest.name!,
-        this.currentTest.countOfQuestions!,
-        this.currentTest.topicId
-      ).subscribe({
-        next: () => this.loadTests(),
-        error: (err) => console.error('Error creating test', err)
-      });
-
+      this.testsService
+        .createTest(
+          this.currentTest.name!,
+          this.currentTest.countOfQuestions!,
+          this.currentTest.topicId
+        )
+        .subscribe({
+          next: () => this.loadTests(),
+          error: (err) => console.error('Error creating test', err)
+        });
     } else {
-      // UPDATE
       if (!this.currentTest.id) return;
-      this.testsService.updateTest(
-        this.currentTest.id,
-        this.currentTest.name!,
-        this.currentTest.countOfQuestions!,
-        this.currentTest.topicId
-      ).subscribe({
-        next: () => this.loadTests(),
-        error: (err) => console.error('Error updating test', err)
-      });
+      this.testsService
+        .updateTest(
+          this.currentTest.id,
+          this.currentTest.name!,
+          this.currentTest.countOfQuestions!,
+          this.currentTest.topicId
+        )
+        .subscribe({
+          next: () => this.loadTests(),
+          error: (err) => console.error('Error updating test', err)
+        });
     }
   }
 
@@ -115,9 +112,9 @@ export class TestListComponent implements OnInit {
     });
   }
 
-  /** Нажатие кнопки "Start" */
+  // Обычный пользователь может стартовать тест
   onStartTest(t: TestDto) {
-    // Переходим на страницу /start-test/ID
     this.router.navigate(['/start-test', t.id]);
   }
 }
+
