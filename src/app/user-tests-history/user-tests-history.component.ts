@@ -13,17 +13,22 @@ import { AuthService } from '../services/auth.service';
   styleUrls: ['./user-tests-history.component.scss']
 })
 export class UserTestsHistoryComponent implements OnInit {
+  // Пагинация
+  currentPage = 1;
+  pageSize = 5;
+  totalPages = 1;
+  totalItems = 0;
+
   allUserTests: UserTestHistoryDto[] = [];
 
-  // Поля для поиска
+  // Поля для поиска (применимо только для Admin)
   searchUserTestId: number | null = null;
   searchEmail: string = '';
 
-  // Для разворачивания деталей
   expanded: { [userTestId: number]: boolean } = {};
 
-  // Флаг, показывает — текущий пользователь Админ или нет
   isAdmin = false;
+  private currentUserEmail: string | null = null;
 
   constructor(
     private userTestsService: UserTestsService,
@@ -32,88 +37,133 @@ export class UserTestsHistoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
-    this.loadInitialData();
+    this.currentUserEmail = this.authService.getEmail();
+    this.loadData();
   }
 
-  loadInitialData(): void {
+  /**
+   * Загружаем данные (учитывая роль)
+   */
+  loadData(): void {
     if (this.isAdmin) {
-      // Если админ — загружаем все
-      this.loadAllUserTests();
+      // admin -> getAllFull
+      this.userTestsService.getAllFull(this.currentPage, this.pageSize).subscribe({
+        next: (res) => {
+          // PaginatedResponse<UserTestHistoryDto>
+          this.allUserTests = res.items;
+          this.totalPages = res.totalPages;
+          this.totalItems = res.totalItems;
+          res.items.forEach(ut => (this.expanded[ut.userTestId] = false));
+        },
+        error: (err) => console.error('Error loading all user tests', err)
+      });
     } else {
-      // Если обычный пользователь — грузим только свою историю
-      const email = this.authService.getEmail();
-      if (email) {
-        this.loadHistoryByEmail(email);
-      } else {
-        // На всякий случай
-        this.allUserTests = [];
+      // user -> getByUserEmail
+      if (this.currentUserEmail) {
+        this.userTestsService.getByUserEmail(this.currentUserEmail, this.currentPage, this.pageSize)
+          .subscribe({
+            next: (res) => {
+              // res = PaginatedResponse<UserTestHistoryDto[]>
+              // ВАЖНО: проверьте, что на бэке объект тоже содержит items!
+              // возможно, у вас там не массив items, а сразу res
+              // ПРИМЕР - как если bэкенд возвращает PaginatedResponse<UserTestHistoryDto>
+              // но typed как <UserTestHistoryDto[]>
+              // адаптируйте под реальную структуру
+
+              // Допустим items = res.items
+              const itemsAny = (res as any).items || [];
+              this.allUserTests = itemsAny;
+              this.totalPages = (res as any).totalPages;
+              this.totalItems = (res as any).totalItems;
+
+              this.allUserTests.forEach(ut => (this.expanded[ut.userTestId] = false));
+            },
+            error: (err) => {
+              console.error('Error loading user tests by email', err);
+              this.allUserTests = [];
+            }
+          });
       }
     }
   }
 
-  loadAllUserTests(): void {
-    this.userTestsService.getAllFull().subscribe({
-      next: (data) => {
-        this.allUserTests = data;
-        data.forEach(ut => this.expanded[ut.userTestId] = false);
-      },
-      error: (err) => {
-        console.error('Error loading all user tests', err);
-      }
-    });
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadData();
+    }
+  }
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadData();
+    }
   }
 
-  loadHistoryByEmail(email: string): void {
-    this.userTestsService.getByUserEmail(email).subscribe({
-      next: (res) => {
-        this.allUserTests = res;
-        res.forEach(ut => this.expanded[ut.userTestId] = false);
-      },
-      error: (err) => {
-        console.error('Error loading user tests by email', err);
-        this.allUserTests = [];
-      }
-    });
-  }
-
-  // Поиск по userTestId (только если мы админ)
+  // Поиск по userTestId (только если admin)
   onSearchById(): void {
-    if (!this.isAdmin) return; // User не может искать произвольные userTestId
-
+    if (!this.isAdmin) return;
     if (!this.searchUserTestId) {
       alert('Введите userTestId');
       return;
     }
+
+    // Запросим /api/UserTests/{id}
     this.userTestsService.getByIdFull(this.searchUserTestId).subscribe({
       next: (res) => {
+        // Здесь single object
         this.allUserTests = [res];
+        this.totalPages = 1;
+        this.totalItems = 1;
         this.expanded = {};
         this.expanded[res.userTestId] = false;
       },
       error: (err) => {
         console.error('Error searching by Id', err);
-        alert('UserTest not found or error');
+        alert('UserTest not found');
         this.allUserTests = [];
+        this.totalPages = 1;
+        this.totalItems = 0;
       }
     });
   }
 
-  // Поиск по email (только если мы админ)
+  // Поиск по email (только если admin)
   onSearchByEmail(): void {
-    if (!this.isAdmin) return; // User не может смотреть чужой email
-
+    if (!this.isAdmin) return;
     if (!this.searchEmail.trim()) {
       alert('Введите email');
       return;
     }
-    this.loadHistoryByEmail(this.searchEmail.trim());
+    this.currentPage = 1;
+    this.loadDataByEmail(this.searchEmail.trim());
   }
 
-  // Сброс: админ снова увидит все, а user — только свои
+  loadDataByEmail(email: string) {
+    this.userTestsService.getByUserEmail(email, this.currentPage, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          // см. комментарий выше
+          const itemsAny = (res as any).items || [];
+          this.allUserTests = itemsAny;
+          this.totalPages = (res as any).totalPages;
+          this.totalItems = (res as any).totalItems;
+
+          this.allUserTests.forEach(ut => (this.expanded[ut.userTestId] = false));
+        },
+        error: (err) => {
+          console.error('Error searching by email', err);
+          alert('No results or error');
+          this.allUserTests = [];
+        }
+      });
+  }
+
   resetSearch(): void {
     this.searchUserTestId = null;
     this.searchEmail = '';
-    this.loadInitialData();
+    this.currentPage = 1;
+    this.loadData();
   }
 
   toggleExpand(userTestId: number): void {

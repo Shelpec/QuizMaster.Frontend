@@ -62,6 +62,25 @@
       </li>
     </ul>
 
+        <!-- Пагинация (prev / next) -->
+    <div class="mt-3 d-flex justify-content-center align-items-center">
+      <button class="btn btn-outline-secondary me-2" (click)="prevPage()" [disabled]="currentPage <= 1">
+        Prev
+      </button>
+      <span class="me-2">
+        Page {{ currentPage }} / {{ totalPages }}
+      </span>
+      <button class="btn btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage >= totalPages">
+        Next
+      </button>
+    </div>
+
+
+    <!-- Optionally: показать всего записей -->
+    <div class="text-muted text-center mt-2">
+      Total Items: {{ totalItems }}
+    </div>
+
     <!-- Question Modal (Create / Edit) -->
     <div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
       <div class="modal-dialog">

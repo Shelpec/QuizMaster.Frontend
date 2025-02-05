@@ -1,9 +1,8 @@
-// src/app/services/user-tests.service.ts
-
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UserTestHistoryDto } from '../dtos/user-test-history.dto';
+import { PaginatedResponse } from '../dtos/paginated-response';
 
 export interface AnswerOptionDto {
   id: number;
@@ -25,13 +24,11 @@ export interface UserTestDto {
   userTestQuestions: UserTestQuestionDto[];
 }
 
-// DTO для отправки выбранных ответов:
 export interface UserAnswerSubmitDto {
   userTestQuestionId: number;
   selectedAnswerOptionIds: number[];
 }
 
-// Результат проверки:
 export interface TestCheckResultDto {
   correctCount: number;
   totalQuestions: number;
@@ -52,19 +49,35 @@ export class UserTestsService {
 
   constructor(private http: HttpClient) {}
 
-  /** Получить все userTest'ы в «расширенном» виде (all-full) */
-  getAllFull(): Observable<UserTestHistoryDto[]> {
-    return this.http.get<UserTestHistoryDto[]>(`${this.baseUrl}/all-full`);
+  /**
+   * Получить все userTest'ы (в расширенном виде) с пагинацией
+   */
+  getAllFull(page = 1, pageSize = 5): Observable<PaginatedResponse<UserTestHistoryDto>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('pageSize', pageSize);
+
+    return this.http.get<PaginatedResponse<UserTestHistoryDto>>(`${this.baseUrl}/all-full`, { params });
   }
-    /** Поиск конкретного userTestId (full) */
+
+  /** Поиск конкретного userTestId (full) */
   getByIdFull(userTestId: number): Observable<UserTestHistoryDto> {
     return this.http.get<UserTestHistoryDto>(`${this.baseUrl}/${userTestId}`);
   }
 
-  /** Поиск по email (full) */
-  getByUserEmail(email: string): Observable<UserTestHistoryDto[]> {
-    // например, /api/UserTests/by-userEmail?email=some@domain
-    return this.http.get<UserTestHistoryDto[]>(`${this.baseUrl}/by-userEmail?email=${encodeURIComponent(email)}`);
+  /**
+   * Поиск по email (full) c пагинацией
+   * /api/UserTests/by-userEmail?email=some@domain&page=1&pageSize=5
+   */
+  getByUserEmail(email: string, page = 1, pageSize = 5): Observable<PaginatedResponse<UserTestHistoryDto[]>> {
+    // ОБРАТИТЕ ВНИМАНИЕ: если на бэкенде реализовано иначе, корректируйте.
+    // Предположим, что вы тоже поддерживаете пагинацию при поиске по email
+    let params = new HttpParams()
+      .set('email', email)
+      .set('page', page)
+      .set('pageSize', pageSize);
+
+    return this.http.get<PaginatedResponse<UserTestHistoryDto[]>>(`${this.baseUrl}/by-userEmail`, { params });
   }
 
   /** Удалить userTest */
@@ -76,6 +89,4 @@ export class UserTestsService {
   startTest(testId: number): Observable<UserTestDto> {
     return this.http.post<UserTestDto>(`${this.baseUrl}/start/${testId}`, {});
   }
-
-  
 }

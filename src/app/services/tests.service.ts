@@ -1,8 +1,7 @@
-// src/app/services/tests.service.ts
-
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { PaginatedResponse } from '../dtos/paginated-response';
 
 export interface TestDto {
   id: number;
@@ -21,17 +20,21 @@ export class TestsService {
 
   constructor(private http: HttpClient) {}
 
-  /** Получить все тесты (TestDto) */
-  getAllTests(): Observable<TestDto[]> {
-    return this.http.get<TestDto[]>(this.baseUrl);
+  /**
+   * Получить страницу тестов
+   */
+  getAllTests(page = 1, pageSize = 5): Observable<PaginatedResponse<TestDto>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('pageSize', pageSize);
+
+    return this.http.get<PaginatedResponse<TestDto>>(this.baseUrl, { params });
   }
 
-  /** Получить тест по ID */
   getTest(id: number): Observable<TestDto> {
     return this.http.get<TestDto>(`${this.baseUrl}/${id}`);
   }
 
-  /** Создать тест: POST /api/tests/create-template?name=... */
   createTest(name: string, countOfQuestions: number, topicId?: number): Observable<TestDto> {
     const params: any = {
       name: name,
@@ -43,7 +46,6 @@ export class TestsService {
     return this.http.post<TestDto>(`${this.baseUrl}/create-template`, null, { params });
   }
 
-  /** Обновить тест: PUT /api/tests/{id}?newName=... */
   updateTest(id: number, newName: string, countOfQuestions: number, topicId?: number): Observable<TestDto> {
     const params: any = {
       newName: newName,
@@ -55,7 +57,6 @@ export class TestsService {
     return this.http.put<TestDto>(`${this.baseUrl}/${id}`, null, { params });
   }
 
-  /** Удалить тест: DELETE /api/tests/{id} */
   deleteTest(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

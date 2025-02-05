@@ -16,8 +16,14 @@ import { TopicDto } from '../dtos/topic.dto';
 })
 export class TestListComponent implements OnInit {
   tests: TestDto[] = [];
-  topics: TopicDto[] = [];
 
+  // Пагинация
+  currentPage = 1;
+  pageSize = 5;
+  totalPages = 1;
+  totalItems = 0;
+
+  topics: TopicDto[] = [];
   isNew = false;
   currentTest: Partial<TestDto> = {
     name: '',
@@ -36,13 +42,32 @@ export class TestListComponent implements OnInit {
   }
 
   loadTests() {
-    this.testsService.getAllTests().subscribe({
-      next: (data: TestDto[]) => {
-        this.tests = data;
-      },
-      error: (err) => console.error('Error loading tests', err)
-    });
+    this.testsService.getAllTests(this.currentPage, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          // res = PaginatedResponse<TestDto>
+          this.tests = res.items;
+          this.totalPages = res.totalPages;
+          this.totalItems = res.totalItems;
+        },
+        error: (err) => console.error('Error loading tests', err)
+      });
   }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadTests();
+    }
+  }
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadTests();
+    }
+  }
+
+  // Дополнительно goToPage(p: number) можно сделать
 
   loadTopics() {
     this.topicsService.getAll().subscribe({
@@ -112,7 +137,6 @@ export class TestListComponent implements OnInit {
     });
   }
 
-  // Обычный пользователь может стартовать тест
   onStartTest(t: TestDto) {
     this.router.navigate(['/start-test', t.id]);
   }

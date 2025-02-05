@@ -19,6 +19,14 @@ import { TopicDto } from '../dtos/topic.dto';
 })
 export class QuestionsListComponent implements OnInit {
   questions: Question[] = [];
+
+  // Пагинация
+  currentPage = 1;
+  pageSize = 5;  // Можно изменить на 10
+  totalPages = 1;
+  totalItems = 0;
+
+  // Поиск по ID
   searchId: number | null = null;
 
   // Topics Modal
@@ -35,7 +43,7 @@ export class QuestionsListComponent implements OnInit {
   };
 
   constructor(
-    public authService: AuthService,        // <-- используем в шаблоне
+    public authService: AuthService,
     private questionsService: QuestionsService,
     private topicsService: TopicsService,
     private router: Router
@@ -45,19 +53,44 @@ export class QuestionsListComponent implements OnInit {
     this.loadAllQuestions();
   }
 
-  goToTests(): void {
-    this.router.navigate(['/tests']);
+  loadAllQuestions(): void {
+    this.questionsService.getAllQuestions(this.currentPage, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          // res = PaginatedResponse<Question>
+          this.questions = res.items;
+          this.totalPages = res.totalPages;
+          this.totalItems = res.totalItems;
+        },
+        error: (err) => console.error('Error loading questions', err)
+      });
   }
 
-  loadAllQuestions(): void {
-    this.questionsService.getAllQuestions().subscribe({
-      next: (data) => {
-        this.questions = data;
-      },
-      error: (err) => {
-        console.error('Error loading questions', err);
-      }
-    });
+  // Переход к предыдущей/следующей странице
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadAllQuestions();
+    }
+  }
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadAllQuestions();
+    }
+  }
+
+  // Дополнительно: перейти к произвольной странице
+  goToPage(p: number): void {
+    if (p >= 1 && p <= this.totalPages) {
+      this.currentPage = p;
+      this.loadAllQuestions();
+    }
+  }
+
+  // Остальная логика (CRUD) остается прежней
+  goToTests(): void {
+    this.router.navigate(['/tests']);
   }
 
   goToQuestion(): void {
@@ -95,13 +128,10 @@ export class QuestionsListComponent implements OnInit {
       alert('Question text is required');
       return;
     }
-    // Фильтр пустых вариантов
     this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(
       a => a.text?.trim() !== ''
     );
-
     if (this.isNew) {
-      // Create
       const dto = {
         text: this.currentQuestion.text!,
         topicId: this.currentQuestion.topicId || 0,
@@ -111,11 +141,13 @@ export class QuestionsListComponent implements OnInit {
         })) || []
       };
       this.questionsService.createQuestion(dto).subscribe({
-        next: () => this.loadAllQuestions(),
+        next: () => {
+          // Перезагрузим
+          this.loadAllQuestions();
+        },
         error: (err) => console.error('Error creating question', err)
       });
     } else {
-      // Update
       if (!this.currentQuestion.id) return;
       const dto = {
         text: this.currentQuestion.text!,
@@ -127,7 +159,9 @@ export class QuestionsListComponent implements OnInit {
         })) || []
       };
       this.questionsService.updateQuestion(this.currentQuestion.id, dto).subscribe({
-        next: () => this.loadAllQuestions(),
+        next: () => {
+          this.loadAllQuestions();
+        },
         error: (err) => console.error('Error updating question', err)
       });
     }
@@ -136,9 +170,7 @@ export class QuestionsListComponent implements OnInit {
   deleteQuestion(q: Question): void {
     if (!confirm(`Delete question: "${q.text}"?`)) return;
     this.questionsService.deleteQuestion(q.id).subscribe({
-      next: () => {
-        this.loadAllQuestions();
-      },
+      next: () => this.loadAllQuestions(),
       error: (err) => console.error('Error deleting question', err)
     });
   }
@@ -151,49 +183,39 @@ export class QuestionsListComponent implements OnInit {
     });
   }
 
-  // Topics
   openTopicsModal(): void {
     this.showTopicsModal = true;
     this.loadTopics();
   }
-
   closeTopicsModal(): void {
     this.showTopicsModal = false;
   }
-
   loadTopics(): void {
     this.topicsService.getAll().subscribe({
-      next: (data) => {
-        this.topics = data;
-      },
+      next: (data) => this.topics = data,
       error: (err) => console.error('Error loading topics', err)
     });
   }
-
   newTopic(): void {
     this.isTopicNew = true;
     this.currentTopic = { name: '' };
   }
-
   editTopic(topic: TopicDto): void {
     this.isTopicNew = false;
     this.currentTopic = { id: topic.id, name: topic.name };
   }
-
   saveTopic(): void {
     if (!this.currentTopic.name) {
       alert('Topic name is required');
       return;
     }
     if (this.isTopicNew) {
-      // CREATE
       const dto = { name: this.currentTopic.name };
       this.topicsService.create(dto).subscribe({
         next: () => this.loadTopics(),
         error: (err) => console.error('Error creating topic', err)
       });
     } else {
-      // UPDATE
       if (!this.currentTopic.id) return;
       const dto = { name: this.currentTopic.name! };
       this.topicsService.update(this.currentTopic.id, dto).subscribe({
@@ -202,7 +224,6 @@ export class QuestionsListComponent implements OnInit {
       });
     }
   }
-
   deleteTopic(topic: TopicDto): void {
     if (!confirm(`Delete topic: "${topic.name}"?`)) return;
     this.topicsService.delete(topic.id).subscribe({
@@ -215,4 +236,3 @@ export class QuestionsListComponent implements OnInit {
     this.router.navigate(['/history-user-tests']);
   }
 }
-
