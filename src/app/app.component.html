@@ -1,26 +1,36 @@
-<!-- app.component.html -->
+<div class="nav-bar p-2 mb-3">
+  <!-- Навигация -->
 
-<!-- Пример (чтобы кнопка Tests была по центру, 
-     можно использовать стили/Bootstrap как угодно) -->
-     <div class="nav-bar p-2 bg-light mb-3" style="display: flex; justify-content: center;">
-  
-      <!-- Home (questions) -->
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
       <a routerLink="/questions" class="btn btn-link">Home</a>
-    
-      <!-- Tests (по центру) -->
-      <a routerLink="/tests" class="btn btn-link mx-3">
-        Tests
-      </a>
-    
+      <a routerLink="/tests" class="btn btn-link mx-3">Tests</a>
+
       <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" class="btn btn-link">Login</a>
         <a routerLink="/register" class="btn btn-link">Register</a>
       </ng-container>
-    
+
       <ng-container *ngIf="authService.isLoggedIn()">
         <button class="btn btn-secondary" (click)="logout()">Logout</button>
       </ng-container>
     </div>
-    
-    <router-outlet></router-outlet>
-    
+
+    <!-- Переключатель тем -->
+    <div class="theme-switcher">
+      <button
+        class="btn rounded-circle p-2"
+        (click)="themeService.toggleTheme()"
+      >
+        <i
+          [class]="
+            themeService.getCurrentTheme() === 'light-theme'
+              ? 'bi bi-moon'
+              : 'bi bi-sun'
+          "
+        ></i>
+      </button>
+    </div>
+  </div>
+</div>
+<router-outlet></router-outlet>

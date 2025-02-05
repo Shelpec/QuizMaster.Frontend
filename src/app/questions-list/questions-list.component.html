@@ -1,73 +1,64 @@
-
-<!-- Пример: всё содержимое questions-list в обёртку -->
 <div class="container mt-4">
-  
-<!-- вверху, рядом с Go to Tests -->
-<div class="d-flex justify-content-center gap-3 mb-3" *ngIf="authService.isLoggedIn()">
-  <button class="btn btn-success" (click)="goToTests()">
-    Go to Tests
-  </button>
-  <button class="btn btn-warning" (click)="goToHistory()">
-    History User Tests
-  </button>
-</div>
-
-
-<div class="p-3 border rounded" style="background-color: #999999;">
-<h2 class="mb-3 text-center">Questions List</h2>
-
-<!-- Кнопка Topics (если авторизован) -->
-<button class="btn btn-outline-info mb-2" *ngIf="authService.isLoggedIn()"
-        (click)="openTopicsModal()">
-  Manage Topics
-</button>
-
-<!-- Поиск по ID (скрыть, если не авторизован) -->
-<div class="row mb-3" *ngIf="authService.isLoggedIn()">
-  <div class="col-auto">
-    <input type="number" [(ngModel)]="searchId" placeholder="Enter Question ID" class="form-control" />
+  <div class="d-flex justify-content-center gap-3 mb-3" *ngIf="authService.isLoggedIn()">
+    <button class="btn btn-success" (click)="goToTests()">
+      Go to Tests
+    </button>
+    <button class="btn btn-warning" (click)="goToHistory()">
+      History User Tests
+    </button>
   </div>
-  <div class="col-auto">
-    <button class="btn btn-primary" (click)="goToQuestion()">Search by ID</button>
-  </div>
-</div>
 
-<!-- Create Question (скрыто, если не авторизован) -->
-<button class="btn btn-primary mb-3"
-        data-bs-toggle="modal" 
-        data-bs-target="#questionModal"
-        (click)="openCreateModal()"
-        *ngIf="authService.isLoggedIn()">
-  + Create Question
-</button>
+  <div class="p-3 border rounded">
+    <h2 class="mb-3 text-center">Questions List</h2>
 
-<!-- Список вопросов -->
-<ul class="list-group">
-  <li class="list-group-item d-flex justify-content-between align-items-start"
-      *ngFor="let q of questions">
-    
-    <div>
-      <div class="fw-bold">{{ q.text }}</div>
-      <div class="text-muted">Topic: {{ q.topicName || '---' }}</div>
-      <ul>
-        <li *ngFor="let ans of q.answerOptions">
-          {{ ans.text }} [Correct? {{ ans.isCorrect }}]
-        </li>
-      </ul>
+    <button class="btn btn-outline-info mb-2" *ngIf="authService.isLoggedIn()"
+            (click)="openTopicsModal()">
+      Manage Topics
+    </button>
+
+    <div class="row mb-3" *ngIf="authService.isLoggedIn()">
+      <div class="col-auto">
+        <input type="number" [(ngModel)]="searchId" 
+               placeholder="Enter Question ID" 
+               class="form-control" />
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" (click)="goToQuestion()">Search by ID</button>
+      </div>
     </div>
-    
-    <div>
-      <button class="btn btn-sm btn-secondary me-2"
-              data-bs-toggle="modal" data-bs-target="#questionModal"
-              (click)="openEditModal(q)"
-              *ngIf="authService.isLoggedIn()">
-        Edit
-      </button>
-      <button class="btn btn-sm btn-danger"
-              (click)="deleteQuestion(q)"
-              *ngIf="authService.isLoggedIn()">
-        Delete
-      </button>
+
+    <button class="btn btn-primary mb-3"
+            data-bs-toggle="modal" 
+            data-bs-target="#questionModal"
+            (click)="openCreateModal()"
+            *ngIf="authService.isLoggedIn()">
+      + Create Question
+    </button>
+
+    <ul class="list-group">
+      <li class="list-group-item d-flex justify-content-between align-items-start"
+          *ngFor="let q of questions">
+        <div>
+          <div class="fw-bold">{{ q.text }}</div>
+          <div class="text-muted">Topic: {{ q.topicName || '---' }}</div>
+          <ul>
+            <li *ngFor="let ans of q.answerOptions">
+              {{ ans.text }} [Correct? {{ ans.isCorrect }}]
+            </li>
+          </ul>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-secondary me-2"
+                  data-bs-toggle="modal" data-bs-target="#questionModal"
+                  (click)="openEditModal(q)"
+                  *ngIf="authService.isLoggedIn()">
+            Edit
+          </button>
+          <button class="btn btn-sm btn-danger"
+                  (click)="deleteQuestion(q)"
+                  *ngIf="authService.isLoggedIn()">
+            Delete
+          </button>
     </div>
   </li>
 </ul>

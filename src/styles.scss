@@ -1,0 +1,108 @@
+@use "sass:map";
+@use "sass:color";
+
+// Переменные для светлой темы
+$light-theme: (
+  background-color: #ffffff,
+  text-color: #212529,
+  secondary-bg: #e1e1e1,
+  border-color: #679697,
+  primary-color: #0d6efd,
+  success-color: #198754,
+  danger-color: #dc3545,
+  warning-color: #ffc107,
+  info-color: #0dcaf0,
+  header-bg: #e9ecef,
+  modal-backdrop: rgba(0, 0, 0, 0.4)
+);
+
+// Переменные для темной темы
+$dark-theme: (
+  background-color: #2f2f2f,
+  text-color: #e9ecef,
+  secondary-bg: #353535,
+  border-color: #495057,
+  primary-color: #0a58ca,
+  success-color: #146c43,
+  danger-color: #b02a37,
+  warning-color: #ca9a04,
+  info-color: #087990,
+  header-bg: #343a40,
+  modal-backdrop: rgba(255, 255, 255, 0.1)
+);
+
+// Миксин для применения темы
+@mixin apply-theme($theme) {
+  background-color: map.get($theme, background-color);
+  color: map.get($theme, text-color);
+
+  .container {
+    background-color: map.get($theme, background-color);
+    color: map.get($theme, text-color);
+  }
+
+  .list-group-item {
+    background-color: map.get($theme, secondary-bg);
+    border-color: map.get($theme, border-color);
+    color: map.get($theme, text-color);
+  }
+
+  .modal-content {
+    background-color: map.get($theme, secondary-bg);
+    border-color: map.get($theme, border-color);
+
+    .modal-header {
+      background-color: map.get($theme, header-bg);
+      border-bottom-color: map.get($theme, border-color);
+    }
+  }
+
+  .form-control,
+  .form-select {
+    background-color: map.get($theme, secondary-bg);
+    border-color: map.get($theme, border-color);
+    color: map.get($theme, text-color);
+
+    &:focus {
+      background-color: map.get($theme, secondary-bg);
+      color: map.get($theme, text-color);
+    }
+  }
+
+  .text-muted {
+    color: color.adjust(map.get($theme, text-color), $lightness: 20%) !important;
+  }
+
+  .border {
+    border-color: map.get($theme, border-color) !important;
+  }
+}
+
+// Применение тем
+.light-theme {
+  @include apply-theme($light-theme);
+}
+
+.dark-theme {
+  @include apply-theme($dark-theme);
+}
+
+// Основные стили
+body {
+  transition: background-color 0.3s, color 0.3s;
+  min-height: 100vh;
+}
+
+h2 {
+  color: var(--primary-color);
+  padding: 1rem 0;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.modal-backdrop {
+  background-color: var(--modal-backdrop);
+}
