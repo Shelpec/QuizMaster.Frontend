@@ -9,7 +9,8 @@ export interface TestDto {
   countOfQuestions: number;
   topicId?: number;
   topicName?: string;
-  createdAt: string; 
+  createdAt: string;
+  isPrivate?: boolean; // <-- важно
 }
 
 @Injectable({
@@ -20,9 +21,7 @@ export class TestsService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Получить страницу тестов
-   */
+  // Получить страницу тестов
   getAllTests(page = 1, pageSize = 5): Observable<PaginatedResponse<TestDto>> {
     const params = new HttpParams()
       .set('page', page)
@@ -35,10 +34,17 @@ export class TestsService {
     return this.http.get<TestDto>(`${this.baseUrl}/${id}`);
   }
 
-  createTest(name: string, countOfQuestions: number, topicId?: number): Observable<TestDto> {
+  /** Создать тест (create-template?...) */
+  createTest(
+    name: string,
+    countOfQuestions: number,
+    topicId?: number,
+    isPrivate = false
+  ): Observable<TestDto> {
     const params: any = {
-      name: name,
-      countOfQuestions: countOfQuestions
+      name,
+      countOfQuestions,
+      isPrivate
     };
     if (topicId != null) {
       params.topicId = topicId;
@@ -46,10 +52,18 @@ export class TestsService {
     return this.http.post<TestDto>(`${this.baseUrl}/create-template`, null, { params });
   }
 
-  updateTest(id: number, newName: string, countOfQuestions: number, topicId?: number): Observable<TestDto> {
+  /** Обновить тест (PUT /api/tests/{id}?newName=...,isPrivate=...) */
+  updateTest(
+    id: number,
+    newName: string,
+    countOfQuestions: number,
+    topicId?: number,
+    isPrivate = false
+  ): Observable<TestDto> {
     const params: any = {
-      newName: newName,
-      countOfQuestions: countOfQuestions
+      newName,
+      countOfQuestions,
+      isPrivate
     };
     if (topicId != null) {
       params.topicId = topicId;
