@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
 import {
   UserTestsService,
   UserTestDto,
@@ -7,23 +9,25 @@ import {
   TestCheckResultDto
 } from '../services/user-tests.service';
 import { UserTestAnswersService } from '../services/user-test-answers.service';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-start-test',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './start-test.component.html',
-  styleUrls: ['./start-test.component.scss'] // <-- подключили SCSS
+  styleUrls: ['./start-test.component.scss']
 })
 export class StartTestComponent implements OnInit {
-  userTest?: UserTestDto;            // Текущий UserTest
-  checkResult?: TestCheckResultDto;  // Результат проверки
+  userTest?: UserTestDto;
+  checkResult?: TestCheckResultDto;
 
   /**
-   * selectedAnswersMap хранит выбранные ID для каждого userTestQuestionId.
-   * Пример: selectedAnswersMap[12] = Set([101,102])
+   * Флаг, который выставляем, если это опрос, и мы
+   * сохранили ответы (не вызывая checkAnswers).
    */
+  surveySaved = false;
+
+  /** Хранит выбранные варианты: для каждого utqId => Set(answerOptionId). */
   selectedAnswersMap: { [utqId: number]: Set<number> } = {};
 
   constructor(
@@ -34,7 +38,6 @@ export class StartTestComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Считываем testId из URL: /start-test/123
     this.route.paramMap.subscribe(params => {
       const testIdStr = params.get('testId');
       if (testIdStr) {
@@ -44,14 +47,14 @@ export class StartTestComponent implements OnInit {
     });
   }
 
-  /** 1) Обращаемся к /api/UserTests/start/{testId}, получаем userTestDto */
+  /** Загружаем UserTestDto (startTest) */
   startTest(testId: number) {
     this.userTestsService.startTest(testId).subscribe({
       next: (data) => {
         console.log('UserTestDto received:', data);
         this.userTest = data;
 
-        // Инициализируем selectedAnswersMap пустыми наборами
+        // Инициализируем карты выбранных вариантов
         data.userTestQuestions.forEach(utq => {
           this.selectedAnswersMap[utq.id] = new Set<number>();
         });
@@ -60,51 +63,62 @@ export class StartTestComponent implements OnInit {
     });
   }
 
-  /** Определяем, есть ли несколько правильных ответов (тогда делаем checkbox) */
+  /**
+   * Если в вопросе несколько правильных ответов => используем чекбоксы,
+   * иначе радио-кнопки
+   */
   hasMultipleCorrect(utq: UserTestQuestionDto): boolean {
+    // Если у вас в userTest есть отдельный признак опроса (isSurvey)
+    // и вы хотите ВСЕГДА чекбоксы для опроса — можете добавить проверку:
+    // if (this.userTest?.isSurvey) return true;
     const correctCount = utq.answerOptions.filter(a => a.isCorrect).length;
     return correctCount > 1;
   }
 
   /**
-   * При выборе checkbox/radio
-   * @param isMultiple - true, если вопрос с несколькими верными (checkbox)
+   * Обработка клика по чекбоксу/радио
+   * @param isMultiple true, если несколько правильных (checkbox)
    */
   onSelectAnswer(utqId: number, optionId: number, event: Event, isMultiple: boolean) {
     const set = this.selectedAnswersMap[utqId];
     if (!set) return;
 
     const checked = (event.target as HTMLInputElement).checked;
-
     if (isMultiple) {
-      // checkbox logic
       if (checked) set.add(optionId);
       else set.delete(optionId);
     } else {
-      // radio logic
       set.clear();
       if (checked) set.add(optionId);
     }
   }
 
   /**
-   * Нажимаем "Finish & Check":
-   * 1) saveAnswers,
-   * 2) в success -> checkAnswers
+   * По кнопке "Finish & Check":
+   * 1) Сохраняем ответы
+   * 2) Если не опрос => вызываем checkAnswers()
+   *    Если опрос => всё, просто выводим "Answers saved (Survey)"
    */
   onFinish() {
     if (!this.userTest) return;
     this.saveAnswers(() => {
-      this.checkAnswers();
+      if (this.userTest?.isSurveyTopic) {
+        // Это опрос -> подсвечиваем выбранные ответы зелёным
+        // и показываем вместо checkResult просто сообщение
+        this.surveySaved = true;
+      } else {
+        // Это обычный тест -> вызываем checkAnswers
+        this.checkAnswers();
+      }
     });
   }
 
-  /** Сохраняем выбранные ответы (POST /api/UserTestAnswers/{userTestId}/save) */
+  /** Сохраняем выбранные ответы */
   private saveAnswers(onSuccess?: () => void) {
     if (!this.userTest) return;
     const userTestId = this.userTest.id;
 
-    // Преобразуем selectedAnswersMap -> массив {userTestQuestionId, selectedAnswerOptionIds}
+    // Формируем массив ответов
     const answers = Object.keys(this.selectedAnswersMap).map(key => {
       const utqId = +key;
       const selectedIds = Array.from(this.selectedAnswersMap[utqId]);
@@ -117,13 +131,13 @@ export class StartTestComponent implements OnInit {
     this.userTestAnswersService.saveAnswers(userTestId, answers).subscribe({
       next: (res) => {
         console.log('SaveAnswers response:', res);
-        if (onSuccess) onSuccess(); // после успеха -> колбэк
+        if (onSuccess) onSuccess();
       },
       error: (err) => console.error('Error saving answers', err)
     });
   }
 
-  /** Запрашиваем /api/UserTestAnswers/{userTestId}/check -> получаем TestCheckResultDto */
+  /** Для обычного теста запрашиваем checkAnswers => получаем checkResult */
   private checkAnswers() {
     if (!this.userTest) return;
     const userTestId = this.userTest.id;
@@ -138,31 +152,39 @@ export class StartTestComponent implements OnInit {
   }
 
   /**
-   * Подсветка выбранных вариантов (если правильный/неправильный).
-   * Возвращаем CSS-класс, который в шаблоне добавляет цвет.
+   * Подсветка выбранных ответов:
+   * - Если surveySaved (и isSurvey) -> всё зелёное
+   * - Если есть checkResult -> красим верный в зелёный, неверный в красный
+   * - Иначе пока не красим
    */
   getAnswerClass(utqId: number, optionId: number): string {
-    // Если еще нет результата, не подсвечиваем
-    if (!this.checkResult) return '';
-
-    // Проверяем, выбрал ли пользователь этот вариант
+    // Проверяем, выбрал ли пользователь вариант
     const chosen = this.selectedAnswersMap[utqId]?.has(optionId);
-    if (!chosen) return ''; // Не выбран => не красим
+    if (!chosen) return ''; // не выбран => без подсветки
 
-    // Нужно понять, правильный ли этот вариант
-    // 1) Найдём нужный вопрос
-    const question = this.userTest?.userTestQuestions.find(x => x.id === utqId);
-    if (!question) return '';
+    // 1) Если это опрос и мы уже закончили (surveySaved), то всё зелёное
+    if (this.userTest?.isSurveyTopic && this.surveySaved) {
+      return 'selected-correct';
+    }
 
-    // 2) Ищем вариант
-    const ans = question.answerOptions.find(a => a.id === optionId);
-    if (!ans) return '';
+    // 2) Если есть checkResult => ищем в userTest.questions -> ans.isCorrect
+    if (this.checkResult) {
+      // Ищем вопрос
+      const question = this.userTest?.userTestQuestions.find(q => q.id === utqId);
+      if (!question) return '';
 
-    // 3) Если ans.isCorrect => 'selected-correct', иначе 'selected-wrong'
-    return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
+      // Ищем вариант
+      const ans = question.answerOptions.find(a => a.id === optionId);
+      if (!ans) return '';
+
+      return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
+    }
+
+    // 3) Иначе (нет результата) — не подсвечиваем
+    return '';
   }
 
-  /** Кнопка «Back to Tests» */
+  /** Вернуться к списку тестов */
   goBackToTests() {
     this.router.navigate(['/tests']);
   }

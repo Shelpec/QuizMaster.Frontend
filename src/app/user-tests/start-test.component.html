@@ -4,9 +4,8 @@
 
   <!-- Форма с вопросами -->
   <form>
-    <!-- Каждое вопрос-ответ — в .card -->
     <div class="card question-card"
-         *ngFor="let utq of userTest.userTestQuestions; let i = index">
+         *ngFor="let utq of userTest.userTestQuestions">
       <div class="card-body">
         <h5>{{ utq.questionText }}</h5>
 
@@ -49,23 +48,27 @@
 
   <!-- Кнопка "Finish & Check" -->
   <div class="d-flex gap-3 mt-3">
-    <button class="btn btn-primary"
-            (click)="onFinish()">
+    <button class="btn btn-primary" (click)="onFinish()">
       Finish & Check
     </button>
   </div>
 
-  <!-- Блок с результатом после проверки -->
-  <div class="mt-4" *ngIf="checkResult">
+  <!-- Блок с результатом: ТОЛЬКО если не опрос -->
+  <div class="mt-4" *ngIf="checkResult && !userTest?.isSurveyTopic">
     <h4>Check Result</h4>
     <p>
       CorrectCount: {{ checkResult.correctCount }}
       / {{ checkResult.totalQuestions }}
     </p>
+    <button class="btn btn-outline-secondary" (click)="goBackToTests()">
+      Back to Tests
+    </button>
+  </div>
 
-    <!-- Кнопка назад к списку тестов -->
-    <button class="btn btn-outline-secondary"
-            (click)="goBackToTests()">
+  <!-- Если это опрос => вместо результата показываем просто "Answers saved" -->
+  <div class="mt-4" *ngIf="surveySaved && userTest?.isSurveyTopic">
+    <h4>Answers successfully saved (Survey)</h4>
+    <button class="btn btn-outline-secondary" (click)="goBackToTests()">
       Back to Tests
     </button>
   </div>
