@@ -1,7 +1,7 @@
 <div class="container mt-4">
   <h2 class="mb-3 text-center">List of Tests</h2>
 
-  <!-- Кнопка Create Test (только для Admin) -->
+  <!-- Кнопка Create Test (Admin only) -->
   <button
     class="btn btn-primary mb-3"
     data-bs-toggle="modal"
@@ -14,19 +14,24 @@
 
   <!-- Список тестов -->
   <ul class="list-group">
-    <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let t of tests">
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center"
+      *ngFor="let t of tests"
+    >
       <div>
         <h5>{{ t.name }}</h5>
         <p>
           <strong>Count:</strong> {{ t.countOfQuestions }} <br />
           <strong>Topic:</strong> {{ t.topicName || '---' }} <br />
-          <small class="text-muted">CreatedAt: {{ t.createdAt }}</small> <br/>
+          <small class="text-muted">CreatedAt: {{ t.createdAt }}</small>
+          <br />
+          <!-- Признак: Private -->
           <span *ngIf="t.isPrivate"> (PRIVATE) </span>
         </p>
       </div>
 
       <div class="d-flex gap-2">
-        <!-- Edit (Admin only) -->
+        <!-- Edit (Admin) -->
         <button
           class="btn btn-sm btn-secondary"
           data-bs-toggle="modal"
@@ -37,7 +42,7 @@
           Edit
         </button>
 
-        <!-- Delete (Admin only) -->
+        <!-- Delete (Admin) -->
         <button
           class="btn btn-sm btn-danger"
           (click)="deleteTest(t)"
@@ -46,7 +51,7 @@
           Delete
         </button>
 
-        <!-- Start (доступен любому залогиненному) -->
+        <!-- Start (User) -->
         <button
           class="btn btn-sm btn-success"
           (click)="onStartTest(t)"
@@ -60,13 +65,19 @@
 
   <!-- Пагинация -->
   <div class="mt-3 d-flex justify-content-center align-items-center">
-    <button class="btn btn-outline-secondary me-2" (click)="prevPage()" [disabled]="currentPage <= 1">
+    <button
+      class="btn btn-outline-secondary me-2"
+      (click)="prevPage()"
+      [disabled]="currentPage <= 1"
+    >
       Prev
     </button>
-    <span class="me-2">
-      Page {{ currentPage }} / {{ totalPages }}
-    </span>
-    <button class="btn btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage >= totalPages">
+    <span class="me-2">Page {{ currentPage }} / {{ totalPages }}</span>
+    <button
+      class="btn btn-outline-secondary"
+      (click)="nextPage()"
+      [disabled]="currentPage >= totalPages"
+    >
       Next
     </button>
   </div>
@@ -88,11 +99,17 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="testModalLabel">{{ isNew ? 'Create Test' : 'Edit Test' }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
 
       <div class="modal-body">
         <form>
+          <!-- Test Name -->
           <div class="mb-3">
             <label class="form-label">Test Name</label>
             <input
@@ -103,6 +120,7 @@
             />
           </div>
 
+          <!-- Count Of Questions -->
           <div class="mb-3">
             <label class="form-label">Count Of Questions</label>
             <input
@@ -113,29 +131,41 @@
             />
           </div>
 
+          <!-- Topic -->
           <div class="mb-3">
             <label class="form-label">Topic</label>
-            <select class="form-select" [(ngModel)]="currentTest.topicId" name="topicId">
-              <option *ngFor="let t of topics" [value]="t.id">{{ t.name }}</option>
+            <select
+              class="form-select"
+              [(ngModel)]="currentTest.topicId"
+              name="topicId"
+            >
+              <option *ngFor="let topic of topics" [value]="topic.id">
+                {{ topic.name }}
+              </option>
             </select>
           </div>
 
-          <!-- Добавляем чекбокс "Is Private?" -->
+          <!-- Is Private? -->
           <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input"
-                   id="chkIsPrivate"
-                   [(ngModel)]="currentTest.isPrivate"
-                   name="isPrivate" />
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="chkIsPrivate"
+              [(ngModel)]="currentTest.isPrivate"
+              name="isPrivate"
+            />
             <label class="form-check-label" for="chkIsPrivate">
               Is Private?
             </label>
           </div>
 
-          <!-- Если приватный, кнопка Manage Access -->
-          <div *ngIf="currentTest.isPrivate">
-            <button type="button"
-                    class="btn btn-outline-secondary mb-2"
-                    (click)="openAccessModal()">
+          <!-- Manage Access (только в режиме Edit, если приватный) -->
+          <div *ngIf="!isNew && currentTest.isPrivate">
+            <button
+              type="button"
+              class="btn btn-outline-secondary mb-2"
+              (click)="openAccessModal()"
+            >
               Manage Access
             </button>
           </div>
@@ -143,18 +173,18 @@
       </div>
 
       <div class="modal-footer">
-        <!-- Кнопка Close -->
-        <button type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
           Close
         </button>
 
-        <!-- Кнопка Save -->
+        <!-- Save -->
         <button
           type="button"
           class="btn btn-primary"
-          data-bs-dismiss="modal"
           (click)="saveTest()"
         >
           Save
@@ -165,72 +195,88 @@
 </div>
 
 <!-- Modal "Manage Access" -->
-<div class="modal fade"
-     id="accessModal"
-     tabindex="-1"
-     aria-labelledby="accessModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-lg"> <!-- сделаем побольше -->
+<div
+  class="modal fade"
+  id="accessModal"
+  tabindex="-1"
+  aria-labelledby="accessModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
+
       <div class="modal-header">
         <h5 class="modal-title" id="accessModalLabel">
           Manage Access for Test: {{ currentTest.name }}
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
 
       <div class="modal-body">
         <!-- Поиск пользователей -->
         <div class="mb-3">
           <label class="form-label">Search User:</label>
-          <input type="text"
-                 class="form-control"
-                 [(ngModel)]="searchText"
-                 (input)="onSearchUsers()" />
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="searchText"
+            (input)="onSearchUsers()"
+          />
         </div>
 
-        <!-- Список найденных пользователей -->
+        <!-- Результаты поиска -->
         <ul class="list-group mb-3" *ngIf="searchResults.length">
-          <li class="list-group-item d-flex justify-content-between align-items-center"
-              *ngFor="let u of searchResults">
-            <span>
-              <strong>{{ u.fullName }}</strong> ({{ u.email }})
-            </span>
-            <button class="btn btn-sm btn-success"
-                    (click)="addAccess(u.id)">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let u of searchResults"
+          >
+            <span><strong>{{ u.fullName }}</strong> ({{ u.email }})</span>
+            <button
+              class="btn btn-sm btn-success"
+              (click)="addAccess(u.id)"
+            >
               + Add Access
             </button>
           </li>
         </ul>
 
-        <hr/>
+        <hr />
 
         <!-- Список уже имеющих доступ -->
         <h6>Users with Access:</h6>
         <ul class="list-group">
-          <li class="list-group-item d-flex justify-content-between align-items-center"
-              *ngFor="let user of currentAccessUsers">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let user of currentAccessUsers"
+          >
             <span>
               <strong>{{ user.fullName }}</strong>
               <span class="text-muted">({{ user.email }})</span>
             </span>
-            <button class="btn btn-sm btn-danger"
-                    (click)="removeAccess(user.userId)">
+            <button
+              class="btn btn-sm btn-danger"
+              (click)="removeAccess(user.userId)"
+            >
               Remove
             </button>
           </li>
         </ul>
-        
       </div>
 
       <div class="modal-footer">
-        <button type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
           Close
         </button>
       </div>
-
     </div>
   </div>
 </div>

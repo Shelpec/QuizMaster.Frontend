@@ -13,6 +13,7 @@ import { UsersService, IUser } from '../services/users.service';
 
 import { PaginatedResponse } from '../dtos/paginated-response';
 
+/** Чтобы не ругался на window['bootstrap'] */
 declare global {
   interface Window {
     bootstrap?: any;
@@ -34,16 +35,22 @@ export class TestListComponent implements OnInit {
   totalPages = 1;
   totalItems = 0;
 
+  // Список топиков (для select)
   topics: TopicDto[] = [];
+
+  // Режим: создание или редактирование
   isNew = false;
 
+  /**
+   * Текущий тест (Partial<TestDto>), включает поля isPrivate и т.д.
+   */
   currentTest: Partial<TestDto> = {
     name: '',
     countOfQuestions: 1,
     isPrivate: false
   };
 
-  // ============ Manage Access ============
+  // Управление доступом
   searchText = '';
   searchResults: IUser[] = [];
   currentAccessUsers: IAccessUser[] = [];
@@ -78,6 +85,7 @@ export class TestListComponent implements OnInit {
       this.loadTests();
     }
   }
+
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -85,16 +93,17 @@ export class TestListComponent implements OnInit {
     }
   }
 
-  // =========================================
+  // ======================
   // CREATE / EDIT
-  // =========================================
+  // ======================
   loadTopics() {
     this.topicsService.getAll().subscribe({
       next: (res) => (this.topics = res),
-      error: (err) => console.error(err)
+      error: (err) => console.error('Error loading topics', err)
     });
   }
 
+  /** Открыть модалку для создания */
   openCreateModal() {
     this.isNew = true;
     this.currentTest = {
@@ -105,7 +114,7 @@ export class TestListComponent implements OnInit {
     };
     this.loadTopics();
 
-    // Открыть Bootstrap-модалку вручную
+    // Открываем Bootstrap-модалку #testModal
     const modalEl = document.getElementById('testModal');
     if (modalEl) {
       const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -113,14 +122,19 @@ export class TestListComponent implements OnInit {
     }
   }
 
+  /** Открыть модалку для редактирования */
   openEditModal(t: TestDto) {
     this.isNew = false;
+
+    // Копируем поля
     this.currentTest = { ...t };
     if (this.currentTest.isPrivate == null) {
       this.currentTest.isPrivate = false;
     }
+
     this.loadTopics();
 
+    // Открываем модалку
     const modalEl = document.getElementById('testModal');
     if (modalEl) {
       const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -128,6 +142,7 @@ export class TestListComponent implements OnInit {
     }
   }
 
+  /** Сохранение (Create/Update) */
   saveTest() {
     if (!this.currentTest.name) {
       alert('Test name required!');
@@ -140,65 +155,61 @@ export class TestListComponent implements OnInit {
 
     const isPrivate = !!this.currentTest.isPrivate;
 
+    // CREATE
     if (this.isNew) {
-      // CREATE
-      this.testsService
-        .createTest(
-          this.currentTest.name!,
-          this.currentTest.countOfQuestions!,
-          this.currentTest.topicId,
-          isPrivate
-        )
-        .subscribe({
-          next: (res) => {
-            // Закрываем модалку
-            const modalEl = document.getElementById('testModal');
-            if (modalEl) {
-              const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
-              modalObj.hide();
-            }
-            // Перезагружаем список
-            this.loadTests();
+      this.testsService.createTest(
+        this.currentTest.name!,
+        this.currentTest.countOfQuestions!,
+        this.currentTest.topicId,
+        isPrivate
+      ).subscribe({
+        next: (res) => {
+          // Закрываем модалку
+          const modalEl = document.getElementById('testModal');
+          if (modalEl) {
+            const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalObj.hide();
+          }
 
-            // Если приватный -> сразу откроем Manage Access
-            if (isPrivate && res.id) {
-              this.currentTest = res;
-              this.openAccessModal();
-            }
-          },
-          error: (err) => console.error('Error creating test', err)
-        });
+          // Обновим список
+          this.loadTests();
 
+          // Если приватный => сразу откроем Manage Access
+          if (isPrivate && res.id) {
+            this.currentTest = res;
+            this.openAccessModal();
+          }
+        },
+        error: (err) => console.error('Error creating test', err)
+      });
+
+    // UPDATE
     } else {
-      // UPDATE
       if (!this.currentTest.id) return;
-      this.testsService
-        .updateTest(
-          this.currentTest.id,
-          this.currentTest.name!,
-          this.currentTest.countOfQuestions!,
-          this.currentTest.topicId,
-          isPrivate
-        )
-        .subscribe({
-          next: (res) => {
-            // Закрыть модалку
-            const modalEl = document.getElementById('testModal');
-            if (modalEl) {
-              const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
-              modalObj.hide();
-            }
-            // Перезагрузим
-            this.loadTests();
+      this.testsService.updateTest(
+        this.currentTest.id,
+        this.currentTest.name!,
+        this.currentTest.countOfQuestions!,
+        this.currentTest.topicId,
+        isPrivate
+      ).subscribe({
+        next: (res) => {
+          // Закрываем модалку
+          const modalEl = document.getElementById('testModal');
+          if (modalEl) {
+            const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalObj.hide();
+          }
 
-            // Если хотим -> можно открыть Access
-            // if (isPrivate) { ... }
-          },
-          error: (err) => console.error('Error updating test', err)
-        });
+          // Обновим список
+          this.loadTests();
+        },
+        error: (err) => console.error('Error updating test', err)
+      });
     }
   }
 
+  /** Удаление теста */
   deleteTest(t: TestDto) {
     if (!confirm(`Delete test: "${t.name}"?`)) return;
     this.testsService.deleteTest(t.id).subscribe({
@@ -207,16 +218,16 @@ export class TestListComponent implements OnInit {
     });
   }
 
-  // =========================================
+  // ======================
   // START TEST
-  // =========================================
+  // ======================
   onStartTest(t: TestDto) {
     this.router.navigate(['/start-test', t.id]);
   }
 
-  // =========================================
+  // ======================
   // MANAGE ACCESS
-  // =========================================
+  // ======================
   openAccessModal() {
     const testId = this.currentTest.id;
     if (!testId) return;
@@ -225,6 +236,7 @@ export class TestListComponent implements OnInit {
     this.searchResults = [];
     this.loadAccessList(testId);
 
+    // Открываем модалку #accessModal
     const modalEl = document.getElementById('accessModal');
     if (modalEl) {
       const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -235,12 +247,13 @@ export class TestListComponent implements OnInit {
   loadAccessList(testId: number) {
     this.testAccessService.getUsersForTest(testId).subscribe({
       next: (list) => {
-        this.currentAccessUsers = list; // IAccessUser[]
+        this.currentAccessUsers = list;
       },
       error: (err) => console.error('Error loading access list', err)
     });
   }
 
+  /** Поиск пользователей */
   onSearchUsers() {
     const s = this.searchText.trim();
     if (!s) {
@@ -253,27 +266,24 @@ export class TestListComponent implements OnInit {
     });
   }
 
+  /** Добавить доступ */
   addAccess(userId: string) {
     const testId = this.currentTest.id;
     if (!testId) return;
 
     this.testAccessService.addAccess(testId, userId).subscribe({
-      next: (res) => {
-        // Перезагрузим список
-        this.loadAccessList(testId);
-      },
+      next: () => this.loadAccessList(testId),
       error: (err) => console.error('Error adding access', err)
     });
   }
 
+  /** Удалить доступ */
   removeAccess(userId: string) {
     const testId = this.currentTest.id;
     if (!testId) return;
 
     this.testAccessService.removeAccess(testId, userId).subscribe({
-      next: (res) => {
-        this.loadAccessList(testId);
-      },
+      next: () => this.loadAccessList(testId),
       error: (err) => console.error('Error removing access', err)
     });
   }

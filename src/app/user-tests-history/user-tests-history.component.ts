@@ -21,7 +21,7 @@ export class UserTestsHistoryComponent implements OnInit {
 
   allUserTests: UserTestHistoryDto[] = [];
 
-  // Поля для поиска (применимо только для Admin)
+  // Поля для поиска (только для Admin)
   searchUserTestId: number | null = null;
   searchEmail: string = '';
 
@@ -41,42 +41,37 @@ export class UserTestsHistoryComponent implements OnInit {
     this.loadData();
   }
 
-  /**
-   * Загружаем данные (учитывая роль)
-   */
   loadData(): void {
     if (this.isAdmin) {
-      // admin -> getAllFull
+      // admin -> getAllFull(page, pageSize)
       this.userTestsService.getAllFull(this.currentPage, this.pageSize).subscribe({
         next: (res) => {
           // PaginatedResponse<UserTestHistoryDto>
           this.allUserTests = res.items;
           this.totalPages = res.totalPages;
           this.totalItems = res.totalItems;
-          res.items.forEach(ut => (this.expanded[ut.userTestId] = false));
+
+          res.items.forEach(ut => {
+            this.expanded[ut.userTestId] = false;
+          });
         },
         error: (err) => console.error('Error loading all user tests', err)
       });
     } else {
-      // user -> getByUserEmail
+      // обычный пользователь -> getByUserEmail
       if (this.currentUserEmail) {
         this.userTestsService.getByUserEmail(this.currentUserEmail, this.currentPage, this.pageSize)
           .subscribe({
             next: (res) => {
               // res = PaginatedResponse<UserTestHistoryDto[]>
-              // ВАЖНО: проверьте, что на бэке объект тоже содержит items!
-              // возможно, у вас там не массив items, а сразу res
-              // ПРИМЕР - как если bэкенд возвращает PaginatedResponse<UserTestHistoryDto>
-              // но typed как <UserTestHistoryDto[]>
-              // адаптируйте под реальную структуру
-
-              // Допустим items = res.items
               const itemsAny = (res as any).items || [];
               this.allUserTests = itemsAny;
               this.totalPages = (res as any).totalPages;
               this.totalItems = (res as any).totalItems;
 
-              this.allUserTests.forEach(ut => (this.expanded[ut.userTestId] = false));
+              this.allUserTests.forEach(ut => {
+                this.expanded[ut.userTestId] = false;
+              });
             },
             error: (err) => {
               console.error('Error loading user tests by email', err);
@@ -93,6 +88,7 @@ export class UserTestsHistoryComponent implements OnInit {
       this.loadData();
     }
   }
+
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -100,7 +96,6 @@ export class UserTestsHistoryComponent implements OnInit {
     }
   }
 
-  // Поиск по userTestId (только если admin)
   onSearchById(): void {
     if (!this.isAdmin) return;
     if (!this.searchUserTestId) {
@@ -108,10 +103,8 @@ export class UserTestsHistoryComponent implements OnInit {
       return;
     }
 
-    // Запросим /api/UserTests/{id}
     this.userTestsService.getByIdFull(this.searchUserTestId).subscribe({
       next: (res) => {
-        // Здесь single object
         this.allUserTests = [res];
         this.totalPages = 1;
         this.totalItems = 1;
@@ -128,7 +121,6 @@ export class UserTestsHistoryComponent implements OnInit {
     });
   }
 
-  // Поиск по email (только если admin)
   onSearchByEmail(): void {
     if (!this.isAdmin) return;
     if (!this.searchEmail.trim()) {
@@ -143,13 +135,14 @@ export class UserTestsHistoryComponent implements OnInit {
     this.userTestsService.getByUserEmail(email, this.currentPage, this.pageSize)
       .subscribe({
         next: (res) => {
-          // см. комментарий выше
           const itemsAny = (res as any).items || [];
           this.allUserTests = itemsAny;
           this.totalPages = (res as any).totalPages;
           this.totalItems = (res as any).totalItems;
 
-          this.allUserTests.forEach(ut => (this.expanded[ut.userTestId] = false));
+          this.allUserTests.forEach(ut => {
+            this.expanded[ut.userTestId] = false;
+          });
         },
         error: (err) => {
           console.error('Error searching by email', err);
@@ -180,7 +173,7 @@ export class UserTestsHistoryComponent implements OnInit {
     });
   }
 
-  getAnswerClass(ans: { isCorrect: boolean; isChosen: boolean; }): string {
+  getAnswerClass(ans: { isCorrect: boolean; isChosen: boolean }): string {
     if (!ans.isChosen) return '';
     return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
   }

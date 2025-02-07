@@ -1,33 +1,33 @@
+// src/app/dtos/user-test-history.dto.ts
+
 export interface UserTestHistoryDto {
-    userTestId: number;
-    userId: string;
-    userEmail?: string;
-    userFullName?: string;
-  
-    testId: number;
-    testName?: string;
-    testCountOfQuestions: number;
-    topicName?: string;
-  
-    totalQuestions: number;
-    correctAnswers: number;
-    isPassed: boolean;
-    dateCreated: string; // или Date
-  
-    questions: QuestionHistoryDto[];
-  }
-  
-  export interface QuestionHistoryDto {
+  userTestId: number;
+  dateCreated: string;
+  isPassed: boolean;
+  correctAnswers: number;
+  totalQuestions: number;
+
+  userId: string;
+  userEmail: string | null;
+  userFullName: string | null;
+
+  testId: number;
+  testName: string | null;
+  testCountOfQuestions: number;
+  topicName: string | null;
+
+  /** Новое поле */
+  topicIsSurvey: boolean;
+
+  questions: {
     userTestQuestionId: number;
     questionId: number;
     questionText: string;
-    answers: AnswerHistoryDto[];
-  }
-  
-  export interface AnswerHistoryDto {
-    answerOptionId: number;
-    text: string;
-    isCorrect: boolean;
-    isChosen: boolean;
-  }
-  
+    answers: {
+      answerOptionId: number;
+      text: string;
+      isCorrect: boolean;
+      isChosen: boolean;
+    }[];
+  }[];
+}

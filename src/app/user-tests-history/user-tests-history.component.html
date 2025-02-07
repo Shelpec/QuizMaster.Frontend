@@ -22,34 +22,33 @@
   </div>
 
   <!-- Список userTest -->
-  <div
-    *ngFor="let item of allUserTests"
-    class="border rounded p-3 mb-3 bg-light"
-  >
+  <div *ngFor="let item of allUserTests" class="border rounded p-3 mb-3 bg-light">
     <div class="d-flex justify-content-between">
       <div>
-        <strong>User:</strong> {{ item.userEmail }} ({{ item.userFullName }}) <br />
-        <strong>Test:</strong> {{ item.testName }} 
-        (<i>{{ item.topicName || '---' }}</i>), 
-        <strong>Questions:</strong> {{ item.testCountOfQuestions }}<br />
-        <strong>Correct:</strong> {{ item.correctAnswers }} / {{ item.totalQuestions }} <br />
+        <strong>User:</strong> {{ item.userEmail }} ({{ item.userFullName }})<br/>
+        <strong>Test:</strong> {{ item.testName }}
+        (<i>{{ item.topicName || '---' }}</i>),
+        <strong>Questions:</strong> {{ item.testCountOfQuestions }}<br/>
+
+        <!-- Показываем Correct: X/Y только если не Survey -->
+        <span *ngIf="!item.topicIsSurvey">
+          <strong>Correct:</strong> {{ item.correctAnswers }} / {{ item.totalQuestions }}
+        </span>
+        <br/>
+
         <strong>Date:</strong> {{ item.dateCreated }}
       </div>
 
       <div>
         <!-- Кнопка удаления (Admin) -->
-        <button
-          class="btn btn-sm btn-danger"
-          (click)="deleteUserTest(item)"
-          *ngIf="isAdmin"
-        >
+        <button class="btn btn-sm btn-danger"
+                (click)="deleteUserTest(item)"
+                *ngIf="isAdmin">
           Delete
         </button>
-        <!-- Expand/Collapse -->
-        <button
-          class="btn btn-sm btn-outline-primary ms-2"
-          (click)="toggleExpand(item.userTestId)"
-        >
+        <!-- Кнопка Expand/Collapse -->
+        <button class="btn btn-sm btn-outline-primary ms-2"
+                (click)="toggleExpand(item.userTestId)">
           {{ expanded[item.userTestId] ? 'Hide' : 'Show' }} details
         </button>
       </div>
@@ -57,11 +56,14 @@
 
     <!-- Детали (questions/answers) -->
     <div *ngIf="expanded[item.userTestId]" class="mt-3">
-      <hr />
+      <hr/>
       <div *ngFor="let q of item.questions" class="mb-2 ps-3">
         <h5>{{ q.questionText }}</h5>
         <div class="ms-3" *ngFor="let ans of q.answers">
-          <input type="checkbox" disabled [checked]="ans.isChosen" [ngClass]="getAnswerClass(ans)" />
+          <input type="checkbox"
+                 disabled
+                 [checked]="ans.isChosen"
+                 [ngClass]="getAnswerClass(ans)" />
           <span [ngClass]="getAnswerClass(ans)">
             {{ ans.text }}
           </span>
@@ -72,13 +74,17 @@
 
   <!-- Пагинация -->
   <div class="mt-3 d-flex justify-content-center align-items-center">
-    <button class="btn btn-outline-secondary me-2" (click)="prevPage()" [disabled]="currentPage <= 1">
+    <button class="btn btn-outline-secondary me-2"
+            (click)="prevPage()"
+            [disabled]="currentPage <= 1">
       Prev
     </button>
     <span class="me-2">
       Page {{ currentPage }} / {{ totalPages }}
     </span>
-    <button class="btn btn-outline-secondary" (click)="nextPage()" [disabled]="currentPage >= totalPages">
+    <button class="btn btn-outline-secondary"
+            (click)="nextPage()"
+            [disabled]="currentPage >= totalPages">
       Next
     </button>
   </div>

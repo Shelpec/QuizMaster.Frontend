@@ -10,6 +10,12 @@ import { TopicsService } from '../services/topics.service';
 import { Question } from '../dtos/question.dto';
 import { TopicDto } from '../dtos/topic.dto';
 
+/** 
+ * Компонент QuestionsListComponent 
+ * с исправленным кодом, включая 
+ * возможность скрывать «IsCorrect?» 
+ * если topic.isSurveyTopic.
+ */
 @Component({
   selector: 'app-questions-list',
   standalone: true,
@@ -33,7 +39,10 @@ export class QuestionsListComponent implements OnInit {
   showTopicsModal = false;
   topics: TopicDto[] = [];
   isTopicNew = false;
-  currentTopic: Partial<TopicDto> = { name: '' };
+  currentTopic: Partial<TopicDto> = {
+    name: '',
+    isSurveyTopic: false
+  };
 
   // Question Create/Update
   isNew = false;
@@ -73,6 +82,7 @@ export class QuestionsListComponent implements OnInit {
       this.loadAllQuestions();
     }
   }
+
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -88,7 +98,6 @@ export class QuestionsListComponent implements OnInit {
     }
   }
 
-  // Остальная логика (CRUD) остается прежней
   goToTests(): void {
     this.router.navigate(['/tests']);
   }
@@ -99,6 +108,9 @@ export class QuestionsListComponent implements OnInit {
     }
   }
 
+  // =========================
+  // CREATE / EDIT Question
+  // =========================
   openCreateModal(): void {
     this.isNew = true;
     this.currentQuestion = {
@@ -123,15 +135,24 @@ export class QuestionsListComponent implements OnInit {
     this.loadTopics();
   }
 
+  /** Проверяем, является ли текущий выбранный topic «опросниковым» */
+  isCurrentTopicSurvey(): boolean {
+    const topic = this.topics.find(t => t.id === this.currentQuestion.topicId);
+    return !!topic?.isSurveyTopic;
+  }
+
   saveQuestion(): void {
     if (!this.currentQuestion.text) {
       alert('Question text is required');
       return;
     }
+    // Удаляем пустые варианты
     this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(
       a => a.text?.trim() !== ''
     );
+
     if (this.isNew) {
+      // CREATE
       const dto = {
         text: this.currentQuestion.text!,
         topicId: this.currentQuestion.topicId || 0,
@@ -148,6 +169,7 @@ export class QuestionsListComponent implements OnInit {
         error: (err) => console.error('Error creating question', err)
       });
     } else {
+      // UPDATE
       if (!this.currentQuestion.id) return;
       const dto = {
         text: this.currentQuestion.text!,
@@ -183,6 +205,9 @@ export class QuestionsListComponent implements OnInit {
     });
   }
 
+  // =========================
+  // TOPICS Modal
+  // =========================
   openTopicsModal(): void {
     this.showTopicsModal = true;
     this.loadTopics();
@@ -190,40 +215,62 @@ export class QuestionsListComponent implements OnInit {
   closeTopicsModal(): void {
     this.showTopicsModal = false;
   }
+
   loadTopics(): void {
     this.topicsService.getAll().subscribe({
       next: (data) => this.topics = data,
       error: (err) => console.error('Error loading topics', err)
     });
   }
+
   newTopic(): void {
     this.isTopicNew = true;
-    this.currentTopic = { name: '' };
+    this.currentTopic = {
+      name: '',
+      isSurveyTopic: false
+    };
   }
-  editTopic(topic: TopicDto): void {
+
+  editTopic(topic: TopicDto) {
     this.isTopicNew = false;
-    this.currentTopic = { id: topic.id, name: topic.name };
+    this.currentTopic = {
+      id: topic.id,
+      name: topic.name,
+      isSurveyTopic: topic.isSurveyTopic
+    };
   }
+
+  /** Исправление основное: вместо subscribe(...) добавляем полный объект. */
   saveTopic(): void {
     if (!this.currentTopic.name) {
       alert('Topic name is required');
       return;
     }
+
     if (this.isTopicNew) {
-      const dto = { name: this.currentTopic.name };
+      // CREATE
+      const dto = {
+        name: this.currentTopic.name,
+        isSurveyTopic: !!this.currentTopic.isSurveyTopic
+      };
       this.topicsService.create(dto).subscribe({
         next: () => this.loadTopics(),
         error: (err) => console.error('Error creating topic', err)
       });
     } else {
+      // UPDATE
       if (!this.currentTopic.id) return;
-      const dto = { name: this.currentTopic.name! };
+      const dto = {
+        name: this.currentTopic.name!,
+        isSurveyTopic: !!this.currentTopic.isSurveyTopic
+      };
       this.topicsService.update(this.currentTopic.id, dto).subscribe({
         next: () => this.loadTopics(),
         error: (err) => console.error('Error updating topic', err)
       });
     }
   }
+
   deleteTopic(topic: TopicDto): void {
     if (!confirm(`Delete topic: "${topic.name}"?`)) return;
     this.topicsService.delete(topic.id).subscribe({

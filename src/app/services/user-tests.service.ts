@@ -22,7 +22,11 @@ export interface UserTestDto {
   testId: number;
   dateCreated: string;
   userTestQuestions: UserTestQuestionDto[];
+
+  // Чтобы фронт понимал, что это опросник
+  isSurveyTopic?: boolean;
 }
+
 
 export interface UserAnswerSubmitDto {
   userTestQuestionId: number;
@@ -30,16 +34,20 @@ export interface UserAnswerSubmitDto {
 }
 
 export interface TestCheckResultDto {
+  isSurvey: boolean;
   correctCount: number;
   totalQuestions: number;
   results: QuestionCheckResultDto[];
 }
+
 export interface QuestionCheckResultDto {
+  correctOptionIds: any;
   questionId: number;
   isCorrect: boolean;
   correctAnswers: string[];
   selectedAnswers: string[];
 }
+
 
 @Injectable({
   providedIn: 'root'
