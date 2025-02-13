@@ -1,4 +1,3 @@
-// src/app/services/topics.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +7,7 @@ import { TopicDto, CreateTopicDto, UpdateTopicDto } from '../dtos/topic.dto';
   providedIn: 'root'
 })
 export class TopicsService {
-  private baseUrl = 'https://localhost:44336/api/topic'; // ваш URL
+  private baseUrl = 'https://localhost:44336/api/topic';
 
   constructor(private http: HttpClient) {}
 

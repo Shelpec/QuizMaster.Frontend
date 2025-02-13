@@ -1,17 +1,10 @@
+// src/app/services/tests.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../dtos/paginated-response';
-
-export interface TestDto {
-  id: number;
-  name: string;
-  countOfQuestions: number;
-  topicId?: number;
-  topicName?: string;
-  createdAt: string;
-  isPrivate?: boolean; // <-- важно
-}
+import { TestDto, TestTypeEnum } from '../dtos/test.dto';
+import { Question } from '../dtos/question.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -20,8 +13,24 @@ export class TestsService {
   private baseUrl = 'https://localhost:44336/api/tests';
 
   constructor(private http: HttpClient) {}
+  
+  // tests.service.ts
+  addQuestionToTest(testId: number, questionId: number): Observable<TestDto> {
+    // POST /api/tests/{testId}/questions/{questionId}
+    return this.http.post<TestDto>(`${this.baseUrl}/${testId}/questions/${questionId}`, {});
+  }
 
-  // Получить страницу тестов
+  removeQuestionFromTest(testId: number, questionId: number): Observable<TestDto> {
+    // DELETE /api/tests/{testId}/questions/{questionId}
+    return this.http.delete<TestDto>(`${this.baseUrl}/${testId}/questions/${questionId}`);
+  }
+
+  getTestQuestions(testId: number): Observable<Question[]> {
+    // GET /api/tests/{testId}/questions
+    return this.http.get<Question[]>(`${this.baseUrl}/${testId}/questions`);
+  }
+
+
   getAllTests(page = 1, pageSize = 5): Observable<PaginatedResponse<TestDto>> {
     const params = new HttpParams()
       .set('page', page)
@@ -34,44 +43,89 @@ export class TestsService {
     return this.http.get<TestDto>(`${this.baseUrl}/${id}`);
   }
 
-  /** Создать тест (create-template?...) */
+  /**
+   * Создать новый тест (create-template).
+   * На сервере: POST /api/tests/create-template?name=...&countOfQuestions=...&topicId=...
+   * Параметры: isPrivate, isRandom, testType, timeLimitMinutes
+   */
   createTest(
     name: string,
     countOfQuestions: number,
     topicId?: number,
-    isPrivate = false
+    isPrivate = false,
+    isRandom = false,
+    testType: TestTypeEnum = TestTypeEnum.QuestionsOnly,
+    timeLimitMinutes?: number
   ): Observable<TestDto> {
-    const params: any = {
-      name,
-      countOfQuestions,
-      isPrivate
-    };
+    let params = new HttpParams()
+      .set('name', name)
+      .set('countOfQuestions', countOfQuestions)
+      .set('isPrivate', isPrivate);
+
     if (topicId != null) {
-      params.topicId = topicId;
+      params = params.set('topicId', topicId);
     }
-    return this.http.post<TestDto>(`${this.baseUrl}/create-template`, null, { params });
+
+    // isRandom, testType, timeLimit
+    params = params.set('isRandom', isRandom);
+    // testType - передаём как строку (например, "QuestionsOnly")
+    params = params.set('testType', testType);
+
+    if (timeLimitMinutes != null) {
+      params = params.set('timeLimitMinutes', timeLimitMinutes);
+    }
+
+    return this.http.post<TestDto>(`${this.baseUrl}/create-template`, null, {
+      params
+    });
   }
 
-  /** Обновить тест (PUT /api/tests/{id}?newName=...,isPrivate=...) */
+  /**
+   * Обновить существующий тест (PUT /api/tests/{id}?newName=...&countOfQuestions=...).
+   */
   updateTest(
     id: number,
     newName: string,
     countOfQuestions: number,
     topicId?: number,
-    isPrivate = false
+    isPrivate = false,
+    isRandom = false,
+    testType: TestTypeEnum = TestTypeEnum.QuestionsOnly,
+    timeLimitMinutes?: number
   ): Observable<TestDto> {
-    const params: any = {
-      newName,
-      countOfQuestions,
-      isPrivate
-    };
+    let params = new HttpParams()
+      .set('newName', newName)
+      .set('countOfQuestions', countOfQuestions)
+      .set('isPrivate', isPrivate)
+      .set('isRandom', isRandom)
+      .set('testType', testType);
+
     if (topicId != null) {
-      params.topicId = topicId;
+      params = params.set('topicId', topicId);
     }
-    return this.http.put<TestDto>(`${this.baseUrl}/${id}`, null, { params });
+
+    if (timeLimitMinutes != null) {
+      params = params.set('timeLimitMinutes', timeLimitMinutes);
+    }
+
+    return this.http.put<TestDto>(`${this.baseUrl}/${id}`, null, {
+      params
+    });
   }
 
   deleteTest(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+  /**
+ * Возвращает список «кандидатных» вопросов, которые можно вручную
+ * добавить к тесту (учитывая topicId и testType).
+ */
+  getCandidateQuestions(testId: number): Observable<Question[]> {
+    // GET /api/tests/{testId}/candidate-questions
+    return this.http.get<Question[]>(`${this.baseUrl}/${testId}/candidate-questions`);
+  }
+
 }
+export type { TestDto };
+

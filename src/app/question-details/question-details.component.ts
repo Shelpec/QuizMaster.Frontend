@@ -7,6 +7,7 @@ import { QuestionsService } from '../services/questions.service';
 import { Question, UpdateQuestionDto } from '../dtos/question.dto';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { QuestionTypeEnum } from '../enums/question-type.enum';
 
 @Component({
   selector: 'app-question-details',
@@ -52,27 +53,33 @@ export class QuestionDetailsComponent implements OnInit {
     this.isEditing = !this.isEditing;
   }
 
-  // Сохраняем изменения
-  saveChanges() {
-    if (!this.question) return;
+// question-details.component.ts
+// Сохраняем изменения
+saveChanges() {
+  if (!this.question) return;
+    
+  // Теперь укажем и questionType, и correctTextAnswer
+  const dto: UpdateQuestionDto = {
+    text: this.question.text,
+    questionType: this.question.questionType ?? QuestionTypeEnum.SingleChoice,
+    correctTextAnswer: this.question.correctTextAnswer ?? null,
+    answerOptions: this.question.answerOptions.map(ans => ({
+      id: ans.id,
+      text: ans.text,
+      isCorrect: ans.isCorrect
+    }))
+  };
 
-    const dto: UpdateQuestionDto = {
-      text: this.question.text,
-      answerOptions: this.question.answerOptions.map(ans => ({
-        id: ans.id,
-        text: ans.text,
-        isCorrect: ans.isCorrect
-      }))
-    };
+  this.questionsService.updateQuestion(this.questionId, dto).subscribe({
+    next: () => {
+      this.isEditing = false;
+      this.loadQuestion(); 
+    },
+    error: (err) => console.error(err)
+  });
+}
 
-    this.questionsService.updateQuestion(this.questionId, dto).subscribe({
-      next: () => {
-        this.isEditing = false;
-        this.loadQuestion(); // перезагрузить, чтобы увидеть изменения
-      },
-      error: (err) => console.error(err)
-    });
-  }
+
 
   deleteQuestion() {
     if (!confirm(`Delete question: "${this.question?.text}"?`)) return;

@@ -4,8 +4,6 @@
   <!-- Кнопка Create Test (Admin only) -->
   <button
     class="btn btn-primary mb-3"
-    data-bs-toggle="modal"
-    data-bs-target="#testModal"
     (click)="openCreateModal()"
     *ngIf="authService.isLoggedIn() && authService.isAdmin()"
   >
@@ -21,12 +19,14 @@
       <div>
         <h5>{{ t.name }}</h5>
         <p>
-          <strong>Count:</strong> {{ t.countOfQuestions }} <br />
-          <strong>Topic:</strong> {{ t.topicName || '---' }} <br />
-          <small class="text-muted">CreatedAt: {{ t.createdAt }}</small>
-          <br />
-          <!-- Признак: Private -->
-          <span *ngIf="t.isPrivate"> (PRIVATE) </span>
+          <strong>Count:</strong> {{ t.countOfQuestions }}<br />
+          <strong>Topic:</strong> {{ t.topicName || '---' }}<br />
+          <strong>Created:</strong> {{ t.createdAt }}<br />
+          <strong>Private?</strong> {{ t.isPrivate ? 'Yes' : 'No' }}<br />
+          <strong>Random?</strong> {{ t.isRandom ? 'Yes' : 'No' }}<br />
+          <strong>TestType:</strong> {{ t.testType }}<br />
+          <strong>TimeLimit:</strong>
+            {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
         </p>
       </div>
 
@@ -34,12 +34,19 @@
         <!-- Edit (Admin) -->
         <button
           class="btn btn-sm btn-secondary"
-          data-bs-toggle="modal"
-          data-bs-target="#testModal"
           (click)="openEditModal(t)"
           *ngIf="authService.isLoggedIn() && authService.isAdmin()"
         >
           Edit
+        </button>
+
+        <!-- Manage Questions (Admin only, isRandom=false) -->
+        <button
+          class="btn btn-sm btn-info"
+          *ngIf="authService.isLoggedIn() && authService.isAdmin() && t.isRandom === false"
+          (click)="openManageQuestions(t)"
+        >
+          Manage Questions
         </button>
 
         <!-- Delete (Admin) -->
@@ -72,7 +79,9 @@
     >
       Prev
     </button>
-    <span class="me-2">Page {{ currentPage }} / {{ totalPages }}</span>
+    <span class="me-2">
+      Page {{ currentPage }} / {{ totalPages }}
+    </span>
     <button
       class="btn btn-outline-secondary"
       (click)="nextPage()"
@@ -81,13 +90,12 @@
       Next
     </button>
   </div>
-
   <div class="text-muted text-center mt-2">
     Total Items: {{ totalItems }}
   </div>
 </div>
 
-<!-- Модальное окно для Create/Edit Test -->
+<!-- Модальное окно: Create/Edit Test -->
 <div
   class="modal fade"
   id="testModal"
@@ -98,13 +106,10 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="testModalLabel">{{ isNew ? 'Create Test' : 'Edit Test' }}</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <h5 class="modal-title" id="testModalLabel">
+          {{ isNew ? 'Create Test' : 'Edit Test' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
@@ -128,6 +133,7 @@
               class="form-control"
               [(ngModel)]="currentTest.countOfQuestions"
               name="countOfQuestions"
+              min="1"
             />
           </div>
 
@@ -139,8 +145,12 @@
               [(ngModel)]="currentTest.topicId"
               name="topicId"
             >
-              <option *ngFor="let topic of topics" [value]="topic.id">
-                {{ topic.name }}
+              <option [value]="undefined">-- No Topic --</option>
+              <option
+                *ngFor="let tp of topics"
+                [value]="tp.id"
+              >
+                {{ tp.name }}
               </option>
             </select>
           </div>
@@ -159,11 +169,60 @@
             </label>
           </div>
 
-          <!-- Manage Access (только в режиме Edit, если приватный) -->
-          <div *ngIf="!isNew && currentTest.isPrivate">
+          <!-- Is Random? -->
+          <div class="mb-3 form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="chkIsRandom"
+              [(ngModel)]="currentTest.isRandom"
+              name="isRandom"
+            />
+            <label class="form-check-label" for="chkIsRandom">
+              Is Random?
+            </label>
+          </div>
+
+          <!-- TestType -->
+          <div class="mb-3">
+            <label class="form-label">Test Type</label>
+            <select
+              class="form-select"
+              [(ngModel)]="currentTest.testType"
+              name="testType"
+            >
+              <option
+                *ngFor="let tt of testTypes"
+                [ngValue]="tt.value"
+              >
+                {{ tt.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- TimeLimitMinutes -->
+          <div class="mb-3">
+            <label class="form-label">Time Limit (minutes)</label>
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="currentTest.timeLimitMinutes"
+              name="timeLimitMinutes"
+              min="0"
+            />
+            <small class="text-muted">
+              Leave empty or 0 if no time limit
+            </small>
+          </div>
+
+          <!-- Manage Access (только если редактирование и private) -->
+          <div
+            *ngIf="!isNew && currentTest.isPrivate"
+            class="mt-2"
+          >
             <button
               type="button"
-              class="btn btn-outline-secondary mb-2"
+              class="btn btn-outline-secondary"
               (click)="openAccessModal()"
             >
               Manage Access
@@ -180,8 +239,6 @@
         >
           Close
         </button>
-
-        <!-- Save -->
         <button
           type="button"
           class="btn btn-primary"
@@ -194,7 +251,7 @@
   </div>
 </div>
 
-<!-- Modal "Manage Access" -->
+<!-- Модалка Manage Access (пример, если нужно) -->
 <div
   class="modal fade"
   id="accessModal"
@@ -204,16 +261,14 @@
 >
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-
       <div class="modal-header">
         <h5 class="modal-title" id="accessModalLabel">
-          Manage Access for Test: {{ currentTest.name }}
+          Manage Access: {{ currentTest.name }}
         </h5>
         <button
           type="button"
           class="btn-close"
           data-bs-dismiss="modal"
-          aria-label="Close"
         ></button>
       </div>
 
@@ -235,7 +290,7 @@
             class="list-group-item d-flex justify-content-between align-items-center"
             *ngFor="let u of searchResults"
           >
-            <span><strong>{{ u.fullName }}</strong> ({{ u.email }})</span>
+            <span>{{ u.fullName }} ({{ u.email }})</span>
             <button
               class="btn btn-sm btn-success"
               (click)="addAccess(u.id)"
@@ -254,10 +309,7 @@
             class="list-group-item d-flex justify-content-between align-items-center"
             *ngFor="let user of currentAccessUsers"
           >
-            <span>
-              <strong>{{ user.fullName }}</strong>
-              <span class="text-muted">({{ user.email }})</span>
-            </span>
+            <span>{{ user.fullName }} ({{ user.email }})</span>
             <button
               class="btn btn-sm btn-danger"
               (click)="removeAccess(user.userId)"
@@ -266,6 +318,96 @@
             </button>
           </li>
         </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка Manage Questions (для isRandom=false) -->
+<div
+  class="modal fade"
+  id="manageQuestionsModal"
+  tabindex="-1"
+  aria-labelledby="manageQuestionsLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="manageQuestionsLabel">
+          Manage Questions for Test: {{ currentTest.name }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- (Optional) кнопка "Create new question" -->
+        <button
+          class="btn btn-sm btn-outline-primary mb-2"
+          (click)="openCreateQuestionModal()"
+        >
+          + Create Question
+        </button>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Candidate Questions</h6>
+            <ul
+              class="list-group"
+              style="max-height: 300px; overflow:auto;"
+            >
+              <li
+                class="list-group-item d-flex justify-content-between align-items-center"
+                *ngFor="let cq of candidateQuestions"
+              >
+                <span>{{ cq.text }} ({{ cq.questionType }})</span>
+                <button
+                  class="btn btn-sm btn-success"
+                  (click)="addQuestionToTest(cq.id)"
+                >
+                  +Add
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-md-6">
+            <h6>Test Questions</h6>
+            <ul
+              class="list-group"
+              style="max-height: 300px; overflow:auto;"
+            >
+              <li
+                class="list-group-item d-flex justify-content-between align-items-center"
+                *ngFor="let tq of testQuestions"
+              >
+                <span>{{ tq.text }} ({{ tq.questionType }})</span>
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="removeQuestionFromTest(tq.id)"
+                >
+                  Remove
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
       </div>
 
       <div class="modal-footer">

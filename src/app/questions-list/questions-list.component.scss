@@ -1,3 +1,12 @@
 h2 {
   color: #1976d2;
 }
+
+.list-group-item {
+  background-color: #f8f9fa;
+}
+
+.modal.show {
+  display: block;
+  background: rgba(0, 0, 0, 0.4);
+}

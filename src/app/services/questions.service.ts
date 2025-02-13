@@ -12,9 +12,38 @@ export class QuestionsService {
 
   constructor(private http: HttpClient) {}
 
+  // Пример простого метода с query-параметрами
+  // topicId: number
+  // allowedTypes: string[] (например ["SingleChoice", "MultipleChoice"])
+  getQuestionsFiltered(topicId: number, allowedTypes: string[]): Observable<Question[]> {
+    // Превращаем массив в query-параметр, например allowedTypes=SingleChoice&allowedTypes=MultipleChoice
+    let params = new HttpParams().set('topicId', topicId);
+    allowedTypes.forEach(type => {
+      params = params.append('allowedTypes', type);
+    });
+
+    return this.http.get<Question[]>(`${this.baseUrl}/filter`, { params });
+  }
+
+  // Если у вас нет эндпоинта /questions/filter на бэке, можно сделать /questions?topicId=&type=...
+  // Или вы можете на фронте загрузить все вопросы по topicId, а потом вручную отфильтровать по типу.
+
+  // Пример "getAllByTopic(topicId)", без типа:
+  getAllByTopic(topicId: number): Observable<Question[]> {
+    // Предположим, вы добавили в контроллер:
+    // [HttpGet]
+    // public async Task<ActionResult<IEnumerable<QuestionDto>>> GetQuestions([FromQuery] int? topicId = null) ...
+    // и фильтруете, если topicId != null
+    const url = `${this.baseUrl}?topicId=${topicId}`;
+    return this.http.get<Question[]>(url);
+  }
   /**
    * Получить страницу вопросов
    */
+  getAllQuestionsAll(): Observable<Question[]> {
+    return this.http.get<Question[]>(this.baseUrl);
+  }
+
   getAllQuestions(page = 1, pageSize = 5): Observable<PaginatedResponse<Question>> {
     const params = new HttpParams()
       .set('page', page)

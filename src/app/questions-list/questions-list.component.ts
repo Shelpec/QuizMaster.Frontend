@@ -6,16 +6,13 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { QuestionsService } from '../services/questions.service';
 import { TopicsService } from '../services/topics.service';
+import { CategoriesService } from '../services/categories.service';
 
+import { QuestionTypeEnum } from '../enums/question-type.enum';
 import { Question } from '../dtos/question.dto';
 import { TopicDto } from '../dtos/topic.dto';
+import { CategoryDto } from '../dtos/category.dto';
 
-/** 
- * Компонент QuestionsListComponent 
- * с исправленным кодом, включая 
- * возможность скрывать «IsCorrect?» 
- * если topic.isSurveyTopic.
- */
 @Component({
   selector: 'app-questions-list',
   standalone: true,
@@ -24,37 +21,68 @@ import { TopicDto } from '../dtos/topic.dto';
   styleUrls: ['./questions-list.component.scss']
 })
 export class QuestionsListComponent implements OnInit {
-  questions: Question[] = [];
 
-  // Пагинация
+  // ============================
+  // 1) Список вопросов + пагинация
+  // ============================
+  questions: Question[] = [];
   currentPage = 1;
-  pageSize = 5;  // Можно изменить на 10
+  pageSize = 5;
   totalPages = 1;
   totalItems = 0;
 
   // Поиск по ID
   searchId: number | null = null;
 
-  // Topics Modal
+  // ============================
+  // 2) Модальное окно тем
+  // ============================
   showTopicsModal = false;
   topics: TopicDto[] = [];
   isTopicNew = false;
   currentTopic: Partial<TopicDto> = {
     name: '',
-    isSurveyTopic: false
+    categoryId: 0
   };
 
-  // Question Create/Update
+  // ============================
+  // 3) Модальное окно категорий
+  // ============================
+  showCategoriesModal = false;
+  categories: CategoryDto[] = []; // Список всех категорий
+  isCategoryNew = false;
+  currentCategory: Partial<CategoryDto> = {
+    name: ''
+  };
+
+  // ============================
+  // 4) Create / Edit Question
+  // ============================
   isNew = false;
   currentQuestion: Partial<Question> = {
     text: '',
+    topicId: undefined,
+    questionType: QuestionTypeEnum.SingleChoice,
+    correctTextAnswer: '',
     answerOptions: []
   };
+
+  // Список типов вопроса
+  questionTypes = [
+    { value: QuestionTypeEnum.SingleChoice, label: 'SingleChoice' },
+    { value: QuestionTypeEnum.MultipleChoice, label: 'MultipleChoice' },
+    { value: QuestionTypeEnum.Survey, label: 'Survey' },
+    { value: QuestionTypeEnum.OpenText, label: 'OpenText' }
+  ];
+
+  // Нужен, чтобы в шаблоне работать: *ngIf="currentQuestion.questionType !== questionTypeEnum.Survey"
+  public questionTypeEnum = QuestionTypeEnum;
 
   constructor(
     public authService: AuthService,
     private questionsService: QuestionsService,
     private topicsService: TopicsService,
+    private categoriesService: CategoriesService,
     private router: Router
   ) {}
 
@@ -62,11 +90,13 @@ export class QuestionsListComponent implements OnInit {
     this.loadAllQuestions();
   }
 
+  // ============================
+  // Методы вопросов
+  // ============================
   loadAllQuestions(): void {
     this.questionsService.getAllQuestions(this.currentPage, this.pageSize)
       .subscribe({
         next: (res) => {
-          // res = PaginatedResponse<Question>
           this.questions = res.items;
           this.totalPages = res.totalPages;
           this.totalItems = res.totalItems;
@@ -75,7 +105,6 @@ export class QuestionsListComponent implements OnInit {
       });
   }
 
-  // Переход к предыдущей/следующей странице
   prevPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
@@ -90,16 +119,12 @@ export class QuestionsListComponent implements OnInit {
     }
   }
 
-  // Дополнительно: перейти к произвольной странице
-  goToPage(p: number): void {
-    if (p >= 1 && p <= this.totalPages) {
-      this.currentPage = p;
-      this.loadAllQuestions();
-    }
-  }
-
   goToTests(): void {
     this.router.navigate(['/tests']);
+  }
+
+  goToHistory(): void {
+    this.router.navigate(['/history-user-tests']);
   }
 
   goToQuestion(): void {
@@ -108,19 +133,23 @@ export class QuestionsListComponent implements OnInit {
     }
   }
 
-  // =========================
+  // ============================
   // CREATE / EDIT Question
-  // =========================
+  // ============================
   openCreateModal(): void {
     this.isNew = true;
     this.currentQuestion = {
       text: '',
       topicId: undefined,
+      questionType: QuestionTypeEnum.SingleChoice,
+      correctTextAnswer: '',
       answerOptions: [
-        { text: '', isCorrect: false, id: 0 },
-        { text: '', isCorrect: false, id: 0 }
+        { id: 0, text: '', isCorrect: false },
+        { id: 0, text: '', isCorrect: false }
       ]
     };
+
+    // Подгружаем темы (если хотите при создании вопроса видеть актуальный список)
     this.loadTopics();
   }
 
@@ -130,156 +159,239 @@ export class QuestionsListComponent implements OnInit {
       id: q.id,
       text: q.text,
       topicId: q.topicId,
+      questionType: q.questionType ?? QuestionTypeEnum.SingleChoice,
+      correctTextAnswer: q.correctTextAnswer ?? '',
       answerOptions: q.answerOptions.map(a => ({ ...a }))
     };
     this.loadTopics();
   }
 
-  /** Проверяем, является ли текущий выбранный topic «опросниковым» */
-  isCurrentTopicSurvey(): boolean {
-    const topic = this.topics.find(t => t.id === this.currentQuestion.topicId);
-    return !!topic?.isSurveyTopic;
+  isOpenTextType(): boolean {
+    return this.currentQuestion.questionType === QuestionTypeEnum.OpenText;
+  }
+
+  shouldShowAnswerOptions(): boolean {
+    return this.currentQuestion.questionType !== QuestionTypeEnum.OpenText;
+  }
+
+  onIsCorrectChange(index: number): void {
+    if (this.currentQuestion.questionType === QuestionTypeEnum.SingleChoice) {
+      this.currentQuestion.answerOptions?.forEach((ans, i) => {
+        if (i !== index) {
+          ans.isCorrect = false;
+        }
+      });
+    }
+  }
+
+  addAnswerOption(): void {
+    this.currentQuestion.answerOptions?.push({
+      id: 0,
+      text: '',
+      isCorrect: false
+    });
   }
 
   saveQuestion(): void {
-    if (!this.currentQuestion.text) {
-      alert('Question text is required');
+    if (!this.currentQuestion.text || !this.currentQuestion.text.trim()) {
+      alert('Question text is required!');
       return;
     }
+
     // Удаляем пустые варианты
-    this.currentQuestion.answerOptions = this.currentQuestion.answerOptions?.filter(
-      a => a.text?.trim() !== ''
-    );
+    if (this.currentQuestion.answerOptions) {
+      this.currentQuestion.answerOptions = this.currentQuestion.answerOptions.filter(
+        a => a.text && a.text.trim() !== ''
+      );
+    }
+
+    const questionType = this.currentQuestion.questionType ?? QuestionTypeEnum.SingleChoice;
+
+    const dto: any = {
+      text: this.currentQuestion.text,
+      topicId: this.currentQuestion.topicId ?? 0,
+      questionType: questionType,
+      correctTextAnswer: null,
+      answerOptions: []
+    };
+
+    if (questionType === QuestionTypeEnum.OpenText) {
+      dto.correctTextAnswer = this.currentQuestion.correctTextAnswer ?? '';
+    } else {
+      dto.answerOptions = this.currentQuestion.answerOptions?.map(a => ({
+        id: a.id,
+        text: a.text,
+        isCorrect: (questionType === QuestionTypeEnum.Survey) ? false : (a.isCorrect ?? false)
+      })) || [];
+    }
 
     if (this.isNew) {
-      // CREATE
-      const dto = {
-        text: this.currentQuestion.text!,
-        topicId: this.currentQuestion.topicId || 0,
-        answerOptions: this.currentQuestion.answerOptions?.map(a => ({
-          text: a.text!,
-          isCorrect: a.isCorrect ?? false
-        })) || []
-      };
       this.questionsService.createQuestion(dto).subscribe({
-        next: () => {
-          // Перезагрузим
-          this.loadAllQuestions();
-        },
+        next: () => this.loadAllQuestions(),
         error: (err) => console.error('Error creating question', err)
       });
     } else {
-      // UPDATE
       if (!this.currentQuestion.id) return;
-      const dto = {
-        text: this.currentQuestion.text!,
-        topicId: this.currentQuestion.topicId || 0,
-        answerOptions: this.currentQuestion.answerOptions?.map(a => ({
-          id: a.id,
-          text: a.text!,
-          isCorrect: a.isCorrect ?? false
-        })) || []
-      };
       this.questionsService.updateQuestion(this.currentQuestion.id, dto).subscribe({
-        next: () => {
-          this.loadAllQuestions();
-        },
+        next: () => this.loadAllQuestions(),
         error: (err) => console.error('Error updating question', err)
       });
     }
   }
 
   deleteQuestion(q: Question): void {
-    if (!confirm(`Delete question: "${q.text}"?`)) return;
+    if (!confirm(`Delete question "${q.text}"?`)) return;
     this.questionsService.deleteQuestion(q.id).subscribe({
       next: () => this.loadAllQuestions(),
       error: (err) => console.error('Error deleting question', err)
     });
   }
 
-  addAnswerOption(): void {
-    this.currentQuestion.answerOptions?.push({
-      text: '',
-      isCorrect: false,
-      id: 0
-    });
-  }
-
-  // =========================
-  // TOPICS Modal
-  // =========================
+  // ============================
+  // MANAGE TOPICS
+  // ============================
   openTopicsModal(): void {
     this.showTopicsModal = true;
     this.loadTopics();
+    // А также загрузить категории, если нужно показать их внутри?
+    this.loadCategories();
   }
+
   closeTopicsModal(): void {
     this.showTopicsModal = false;
   }
 
   loadTopics(): void {
     this.topicsService.getAll().subscribe({
-      next: (data) => this.topics = data,
+      next: (res) => this.topics = res,
       error: (err) => console.error('Error loading topics', err)
     });
   }
 
   newTopic(): void {
     this.isTopicNew = true;
-    this.currentTopic = {
-      name: '',
-      isSurveyTopic: false
-    };
+    this.currentTopic = { name: '', categoryId: 0 };
   }
 
-  editTopic(topic: TopicDto) {
+  editTopic(t: TopicDto): void {
     this.isTopicNew = false;
     this.currentTopic = {
-      id: topic.id,
-      name: topic.name,
-      isSurveyTopic: topic.isSurveyTopic
+      id: t.id,
+      name: t.name,
+      categoryId: t.categoryId
     };
   }
 
-  /** Исправление основное: вместо subscribe(...) добавляем полный объект. */
   saveTopic(): void {
-    if (!this.currentTopic.name) {
-      alert('Topic name is required');
+    if (!this.currentTopic.name || !this.currentTopic.name.trim()) {
+      alert('Topic name is required!');
       return;
     }
+    // По умолчанию можно ставить categoryId=0, если не выбрали
+    const dto = {
+      name: this.currentTopic.name.trim(),
+      categoryId: this.currentTopic.categoryId ?? 0
+    };
 
     if (this.isTopicNew) {
-      // CREATE
-      const dto = {
-        name: this.currentTopic.name,
-        isSurveyTopic: !!this.currentTopic.isSurveyTopic
-      };
       this.topicsService.create(dto).subscribe({
-        next: () => this.loadTopics(),
+        next: () => {
+          this.loadTopics();
+          console.log('Topic created successfully');
+        },
         error: (err) => console.error('Error creating topic', err)
       });
     } else {
-      // UPDATE
       if (!this.currentTopic.id) return;
-      const dto = {
-        name: this.currentTopic.name!,
-        isSurveyTopic: !!this.currentTopic.isSurveyTopic
-      };
       this.topicsService.update(this.currentTopic.id, dto).subscribe({
-        next: () => this.loadTopics(),
+        next: () => {
+          this.loadTopics();
+          console.log('Topic updated successfully');
+        },
         error: (err) => console.error('Error updating topic', err)
       });
     }
   }
 
-  deleteTopic(topic: TopicDto): void {
-    if (!confirm(`Delete topic: "${topic.name}"?`)) return;
-    this.topicsService.delete(topic.id).subscribe({
+  deleteTopic(t: TopicDto): void {
+    if (!confirm(`Delete topic "${t.name}"?`)) return;
+    this.topicsService.delete(t.id).subscribe({
       next: () => this.loadTopics(),
       error: (err) => console.error('Error deleting topic', err)
     });
   }
 
-  goToHistory(): void {
-    this.router.navigate(['/history-user-tests']);
+  // ============================
+  // MANAGE CATEGORIES
+  // ============================
+  openCategoriesModal(): void {
+    this.showCategoriesModal = true;
+    this.loadCategories();
   }
+
+  closeCategoriesModal(): void {
+    this.showCategoriesModal = false;
+  }
+
+  loadCategories(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (res) => this.categories = res,
+      error: (err) => console.error('Error loading categories', err)
+    });
+  }
+
+  newCategory(): void {
+    this.isCategoryNew = true;
+    this.currentCategory = { name: '' };
+  }
+
+  editCategory(c: CategoryDto): void {
+    this.isCategoryNew = false;
+    this.currentCategory = {
+      id: c.id,
+      name: c.name
+    };
+  }
+
+  saveCategory(): void {
+    if (!this.currentCategory.name || !this.currentCategory.name.trim()) {
+      alert('Category name is required!');
+      return;
+    }
+
+    if (this.isCategoryNew) {
+      const dto = { name: this.currentCategory.name.trim() };
+      this.categoriesService.create(dto).subscribe({
+        next: () => {
+          this.loadCategories();
+          console.log('Category created');
+        },
+        error: (err) => console.error('Error creating category', err)
+      });
+    } else {
+      if (!this.currentCategory.id) return;
+      const dto = { name: this.currentCategory.name.trim() };
+      this.categoriesService.update(this.currentCategory.id, dto).subscribe({
+        next: () => {
+          this.loadCategories();
+          console.log('Category updated');
+        },
+        error: (err) => console.error('Error updating category', err)
+      });
+    }
+  }
+
+  deleteCategory(c: CategoryDto): void {
+    if (!confirm(`Delete category "${c.name}"?`)) return;
+    this.categoriesService.delete(c.id).subscribe({
+      next: () => {
+        this.loadCategories();
+        console.log('Category deleted');
+      },
+      error: (err) => console.error('Error deleting category', err)
+    });
+  }
+
+  
+
 }
