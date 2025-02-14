@@ -19,12 +19,14 @@ export class UserTestsHistoryComponent implements OnInit {
   totalPages = 1;
   totalItems = 0;
 
+  // История
   allUserTests: UserTestHistoryDto[] = [];
 
-  // Поля для поиска (только для Admin)
+  // Поля поиска
   searchUserTestId: number | null = null;
   searchEmail: string = '';
 
+  // Раскрытие деталей
   expanded: { [userTestId: number]: boolean } = {};
 
   isAdmin = false;
@@ -43,31 +45,28 @@ export class UserTestsHistoryComponent implements OnInit {
 
   loadData(): void {
     if (this.isAdmin) {
-      // admin -> getAllFull(page, pageSize)
+      // Admin => getAllFull
       this.userTestsService.getAllFull(this.currentPage, this.pageSize).subscribe({
         next: (res) => {
-          // PaginatedResponse<UserTestHistoryDto>
           this.allUserTests = res.items;
           this.totalPages = res.totalPages;
           this.totalItems = res.totalItems;
 
-          res.items.forEach(ut => {
+          this.allUserTests.forEach(ut => {
             this.expanded[ut.userTestId] = false;
           });
         },
         error: (err) => console.error('Error loading all user tests', err)
       });
     } else {
-      // обычный пользователь -> getByUserEmail
+      // Обычный юзер => getByUserEmail
       if (this.currentUserEmail) {
         this.userTestsService.getByUserEmail(this.currentUserEmail, this.currentPage, this.pageSize)
           .subscribe({
             next: (res) => {
-              // res = PaginatedResponse<UserTestHistoryDto[]>
-              const itemsAny = (res as any).items || [];
-              this.allUserTests = itemsAny;
-              this.totalPages = (res as any).totalPages;
-              this.totalItems = (res as any).totalItems;
+              this.allUserTests = res.items;
+              this.totalPages = res.totalPages;
+              this.totalItems = res.totalItems;
 
               this.allUserTests.forEach(ut => {
                 this.expanded[ut.userTestId] = false;
@@ -135,10 +134,9 @@ export class UserTestsHistoryComponent implements OnInit {
     this.userTestsService.getByUserEmail(email, this.currentPage, this.pageSize)
       .subscribe({
         next: (res) => {
-          const itemsAny = (res as any).items || [];
-          this.allUserTests = itemsAny;
-          this.totalPages = (res as any).totalPages;
-          this.totalItems = (res as any).totalItems;
+          this.allUserTests = res.items;
+          this.totalPages = res.totalPages;
+          this.totalItems = res.totalItems;
 
           this.allUserTests.forEach(ut => {
             this.expanded[ut.userTestId] = false;
@@ -173,8 +171,25 @@ export class UserTestsHistoryComponent implements OnInit {
     });
   }
 
+  /**
+   * Подсвечиваем только те варианты, которые выбрал пользователь (isChosen=true).
+   * Если isChosen + isCorrect => 'selected-correct', иначе 'selected-wrong'.
+   */
   getAnswerClass(ans: { isCorrect: boolean; isChosen: boolean }): string {
     if (!ans.isChosen) return '';
     return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
+  }
+
+  /**
+   * Подсветка для текстового ответа (OpenText).
+   * Можно считать всё "зелёным", или проверять, действительно ли пользователь верно ответил.
+   */
+  getTextAnswerClass(ans: { userTextAnswer?: string; isCorrect?: boolean }): string {
+    // Если у вас есть реальная логика проверки, можно делать if (ans.isCorrect===false) => red
+    if (ans.isCorrect === false) {
+      return 'selected-wrong';
+    }
+    // Иначе
+    return 'selected-correct';
   }
 }

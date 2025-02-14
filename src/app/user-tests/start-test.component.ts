@@ -1,34 +1,50 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import {
   UserTestsService,
   UserTestDto,
   UserTestQuestionDto,
+  UserAnswerSubmitDto,
   TestCheckResultDto
 } from '../services/user-tests.service';
+
 import { UserTestAnswersService } from '../services/user-test-answers.service';
+import { QuestionTypeEnum } from '../enums/question-type.enum';
+
+interface ICheckResultMap {
+  [questionId: number]: {
+    isCorrect: boolean;
+    correctAnswers: string[];
+    selectedAnswers: string[];
+  };
+}
 
 @Component({
   selector: 'app-start-test',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './start-test.component.html',
   styleUrls: ['./start-test.component.scss']
 })
-export class StartTestComponent implements OnInit {
+export class StartTestComponent implements OnInit, OnDestroy {
   userTest?: UserTestDto;
   checkResult?: TestCheckResultDto;
-
-  /**
-   * Флаг, который выставляем, если это опрос, и мы
-   * сохранили ответы (не вызывая checkAnswers).
-   */
   surveySaved = false;
 
-  /** Хранит выбранные варианты: для каждого utqId => Set(answerOptionId). */
+  // Для отслеживания времени
+  timeLeftSeconds = 0;   // Сколько осталось секунд
+  timeIsUp = false;      // Флаг "время истекло" -> показывает модалку
+  private timerInterval?: any; // setInterval
+
+  // Храним выбранные варианты
   selectedAnswersMap: { [utqId: number]: Set<number> } = {};
+  // Храним введённые ответы для OpenText
+  openTextMap: { [utqId: number]: string } = {};
+
+  private checkAnswerMap: ICheckResultMap = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -47,144 +63,254 @@ export class StartTestComponent implements OnInit {
     });
   }
 
-  /** Загружаем UserTestDto (startTest) */
+  ngOnDestroy(): void {
+    // Очищаем таймер при уходе со страницы
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+  }
+
   startTest(testId: number) {
     this.userTestsService.startTest(testId).subscribe({
       next: (data) => {
-        console.log('UserTestDto received:', data);
         this.userTest = data;
 
-        // Инициализируем карты выбранных вариантов
+        // Инициализация выбранных ответов
         data.userTestQuestions.forEach(utq => {
           this.selectedAnswersMap[utq.id] = new Set<number>();
+          if (utq.questionType === QuestionTypeEnum.OpenText) {
+            this.openTextMap[utq.id] = '';
+          }
         });
+
+        // Если у нас есть поле expireTime => запускаем таймер
+        if (data.expireTime) {
+          this.initTimer(data.expireTime);
+        }
       },
       error: (err) => console.error('Error startTest:', err)
     });
   }
 
   /**
-   * Если в вопросе несколько правильных ответов => используем чекбоксы,
-   * иначе радио-кнопки
+   * Запускаем обратный отсчёт до expireTime
    */
-  hasMultipleCorrect(utq: UserTestQuestionDto): boolean {
-    // Если у вас в userTest есть отдельный признак опроса (isSurvey)
-    // и вы хотите ВСЕГДА чекбоксы для опроса — можете добавить проверку:
-    // if (this.userTest?.isSurvey) return true;
-    const correctCount = utq.answerOptions.filter(a => a.isCorrect).length;
-    return correctCount > 1;
+  private initTimer(expireTimeStr: string) {
+    const expireDate = new Date(expireTimeStr);
+    const now = new Date();
+    const diffMs = expireDate.getTime() - now.getTime();
+    this.timeLeftSeconds = Math.max(0, Math.floor(diffMs / 1000));
+
+    this.timerInterval = setInterval(() => {
+      this.timeLeftSeconds--;
+      if (this.timeLeftSeconds <= 0) {
+        this.timeLeftSeconds = 0;
+        this.timeIsUp = true; // открываем модалку
+        clearInterval(this.timerInterval);
+      }
+    }, 1000);
   }
 
   /**
-   * Обработка клика по чекбоксу/радио
-   * @param isMultiple true, если несколько правильных (checkbox)
+   * Форматированный вывод времени (ч:мин:сек или мин:сек).
    */
-  onSelectAnswer(utqId: number, optionId: number, event: Event, isMultiple: boolean) {
+  formatTimeLeft(): string {
+    const sec = this.timeLeftSeconds % 60;
+    const totalMin = Math.floor(this.timeLeftSeconds / 60);
+    const min = totalMin % 60;
+    const hours = Math.floor(totalMin / 60);
+
+    const secStr = sec < 10 ? '0' + sec : sec;
+    const minStr = min < 10 ? '0' + min : min;
+    if (hours > 0) {
+      return `${hours}:${minStr}:${secStr}`;
+    } else {
+      return `${minStr}:${secStr}`;
+    }
+  }
+
+  /**
+   * Обработка выбора ответа
+   */
+  onSelectAnswer(utqId: number, optionId: number, event: Event, isMultiple: boolean): void {
+    // Если время истекло, запрещаем выбирать
+    if (this.timeIsUp) {
+      return;
+    }
+
     const set = this.selectedAnswersMap[utqId];
     if (!set) return;
 
     const checked = (event.target as HTMLInputElement).checked;
     if (isMultiple) {
+      // MultipleChoice / Survey
       if (checked) set.add(optionId);
       else set.delete(optionId);
     } else {
+      // SingleChoice
       set.clear();
       if (checked) set.add(optionId);
     }
   }
 
   /**
-   * По кнопке "Finish & Check":
-   * 1) Сохраняем ответы
-   * 2) Если не опрос => вызываем checkAnswers()
-   *    Если опрос => всё, просто выводим "Answers saved (Survey)"
+   * Завершение: сохраняем и проверяем (кроме Survey).
+   * Скрываем модалку после проверки.
    */
   onFinish() {
     if (!this.userTest) return;
+
+    // Останавливаем таймер
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+
+    // Сохраняем ответы
     this.saveAnswers(() => {
+      // Если это опрос (Survey) — не проверяем на правильность
       if (this.userTest?.isSurveyTopic) {
-        // Это опрос -> подсвечиваем выбранные ответы зелёным
-        // и показываем вместо checkResult просто сообщение
         this.surveySaved = true;
+        // Спрячем модалку
+        this.timeIsUp = false;
       } else {
-        // Это обычный тест -> вызываем checkAnswers
-        this.checkAnswers();
+        // Иначе запускаем проверку. После неё скрываем модалку
+        this.checkAnswers(() => {
+          this.timeIsUp = false;
+        });
       }
     });
   }
 
-  /** Сохраняем выбранные ответы */
+  /**
+   * Запрос на сохранение ответов
+   */
   private saveAnswers(onSuccess?: () => void) {
     if (!this.userTest) return;
+
     const userTestId = this.userTest.id;
+    const answers: UserAnswerSubmitDto[] = [];
 
-    // Формируем массив ответов
-    const answers = Object.keys(this.selectedAnswersMap).map(key => {
-      const utqId = +key;
-      const selectedIds = Array.from(this.selectedAnswersMap[utqId]);
-      return {
-        userTestQuestionId: utqId,
-        selectedAnswerOptionIds: selectedIds
-      };
-    });
+    // Собираем ответы
+    for (const utq of this.userTest.userTestQuestions) {
+      if (utq.questionType === QuestionTypeEnum.OpenText) {
+        // open text
+        const text = this.openTextMap[utq.id] ?? '';
+        answers.push({
+          userTestQuestionId: utq.id,
+          selectedAnswerOptionIds: [],
+          userTextAnswer: text
+        });
+      } else {
+        // single/multiple/survey
+        const chosenIds = Array.from(this.selectedAnswersMap[utq.id]);
+        answers.push({
+          userTestQuestionId: utq.id,
+          selectedAnswerOptionIds: chosenIds
+        });
+      }
+    }
 
+    // POST /api/UserTestAnswers/{userTestId}/save
     this.userTestAnswersService.saveAnswers(userTestId, answers).subscribe({
-      next: (res) => {
-        console.log('SaveAnswers response:', res);
+      next: () => {
         if (onSuccess) onSuccess();
       },
       error: (err) => console.error('Error saving answers', err)
     });
   }
 
-  /** Для обычного теста запрашиваем checkAnswers => получаем checkResult */
-  private checkAnswers() {
+  /**
+   * Проверяем на сервере, с опциональным колбэком
+   */
+  private checkAnswers(afterCheckCallback?: () => void) {
     if (!this.userTest) return;
-    const userTestId = this.userTest.id;
 
+    const userTestId = this.userTest.id;
+    // GET /api/UserTestAnswers/{userTestId}/check
     this.userTestAnswersService.checkAnswers(userTestId).subscribe({
       next: (res) => {
-        console.log('CheckAnswers result:', res);
         this.checkResult = res;
+
+        // Создаём карту для подсветки
+        this.checkAnswerMap = {};
+        res.results.forEach(r => {
+          this.checkAnswerMap[r.questionId] = {
+            isCorrect: r.isCorrect,
+            correctAnswers: r.correctAnswers,
+            selectedAnswers: r.selectedAnswers
+          };
+        });
+
+        // Выполним колбэк
+        if (afterCheckCallback) {
+          afterCheckCallback();
+        }
       },
       error: (err) => console.error('Error checkAnswers', err)
     });
   }
 
   /**
-   * Подсветка выбранных ответов:
-   * - Если surveySaved (и isSurvey) -> всё зелёное
-   * - Если есть checkResult -> красим верный в зелёный, неверный в красный
-   * - Иначе пока не красим
+   * Подсветка радиокнопок/чекбоксов (после проверки)
    */
   getAnswerClass(utqId: number, optionId: number): string {
-    // Проверяем, выбрал ли пользователь вариант
-    const chosen = this.selectedAnswersMap[utqId]?.has(optionId);
-    if (!chosen) return ''; // не выбран => без подсветки
+    const isChosen = this.selectedAnswersMap[utqId]?.has(optionId);
+    if (!isChosen) return '';
 
-    // 1) Если это опрос и мы уже закончили (surveySaved), то всё зелёное
-    if (this.userTest?.isSurveyTopic && this.surveySaved) {
-      return 'selected-correct';
+    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
+    if (!utq) return '';
+
+    // Если Survey/OpenText => всё зелёное (после сохранения/проверки)
+    if (utq.questionType === QuestionTypeEnum.Survey
+     || utq.questionType === QuestionTypeEnum.OpenText) {
+      if (this.surveySaved || this.checkResult) {
+        return 'selected-correct';
+      }
+      return '';
     }
 
-    // 2) Если есть checkResult => ищем в userTest.questions -> ans.isCorrect
-    if (this.checkResult) {
-      // Ищем вопрос
-      const question = this.userTest?.userTestQuestions.find(q => q.id === utqId);
-      if (!question) return '';
+    // Если проверка не выполнялась — не подсвечиваем
+    if (!this.checkResult) return '';
 
-      // Ищем вариант
-      const ans = question.answerOptions.find(a => a.id === optionId);
-      if (!ans) return '';
+    // Достаём результат для этого вопроса
+    const checkData = this.checkAnswerMap[utq.questionId];
+    if (!checkData) return '';
 
-      return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
-    }
+    // Смотрим, есть ли текст ответа среди правильных
+    const ansDto = utq.answerOptions.find(a => a.id === optionId);
+    if (!ansDto) return '';
 
-    // 3) Иначе (нет результата) — не подсвечиваем
-    return '';
+    const isCorrect = checkData.correctAnswers.includes(ansDto.text);
+    return isCorrect ? 'selected-correct' : 'selected-wrong';
   }
 
-  /** Вернуться к списку тестов */
+  /**
+   * Подсветка для текстовых ответов (OpenText)
+   */
+  getOpenTextClass(utqId: number): string {
+    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
+    if (!utq) return '';
+
+    if (utq.questionType === QuestionTypeEnum.Survey
+     || utq.questionType === QuestionTypeEnum.OpenText) {
+      if (this.surveySaved || this.checkResult) {
+        return 'selected-correct-textbox';
+      }
+      return '';
+    }
+
+    // Если обычный вопрос, смотрим checkResult
+    if (!this.checkResult) return '';
+
+    const checkData = this.checkAnswerMap[utq.questionId];
+    if (!checkData) return '';
+
+    return checkData.isCorrect ? 'selected-correct-textbox' : 'selected-wrong-textbox';
+  }
+
+  /**
+   * Кнопка "Back to Tests"
+   */
   goBackToTests() {
     this.router.navigate(['/tests']);
   }

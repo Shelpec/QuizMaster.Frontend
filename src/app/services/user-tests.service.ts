@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserTestHistoryDto } from '../dtos/user-test-history.dto';
 import { PaginatedResponse } from '../dtos/paginated-response';
+import { UserTestHistoryDto } from '../dtos/user-test-history.dto';
 
+/** Сущности для UserTest */
 export interface AnswerOptionDto {
   id: number;
   text: string;
@@ -11,9 +12,10 @@ export interface AnswerOptionDto {
 }
 
 export interface UserTestQuestionDto {
-  id: number;
+  id: number; // UserTestQuestionId
   questionId: number;
   questionText: string;
+  questionType: number; // 0..3
   answerOptions: AnswerOptionDto[];
 }
 
@@ -23,31 +25,33 @@ export interface UserTestDto {
   dateCreated: string;
   userTestQuestions: UserTestQuestionDto[];
 
-  // Чтобы фронт понимал, что это опросник
+  /** Новое поле для времени, может быть null, если тест без лимита */
+  expireTime?: string;
+
+  /** Возможно, если у вас есть логика опроса */
   isSurveyTopic?: boolean;
 }
 
-
+/** Для отправки ответов */
 export interface UserAnswerSubmitDto {
   userTestQuestionId: number;
   selectedAnswerOptionIds: number[];
+  userTextAnswer?: string;
 }
 
+/** Результат проверки */
 export interface TestCheckResultDto {
-  isSurvey: boolean;
   correctCount: number;
   totalQuestions: number;
   results: QuestionCheckResultDto[];
 }
 
 export interface QuestionCheckResultDto {
-  correctOptionIds: any;
   questionId: number;
   isCorrect: boolean;
   correctAnswers: string[];
   selectedAnswers: string[];
 }
-
 
 @Injectable({
   providedIn: 'root'
@@ -58,43 +62,57 @@ export class UserTestsService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Получить все userTest'ы (в расширенном виде) с пагинацией
+   * Старт теста: POST /api/UserTests/start/{testId}
+   */
+  startTest(testId: number): Observable<UserTestDto> {
+    return this.http.post<UserTestDto>(`${this.baseUrl}/start/${testId}`, {});
+  }
+
+  /**
+   * Получить "полную" историю UserTests (пример)
+   * GET /api/UserTests/all-full?page=...&pageSize=...
    */
   getAllFull(page = 1, pageSize = 5): Observable<PaginatedResponse<UserTestHistoryDto>> {
     const params = new HttpParams()
       .set('page', page)
       .set('pageSize', pageSize);
 
-    return this.http.get<PaginatedResponse<UserTestHistoryDto>>(`${this.baseUrl}/all-full`, { params });
+    return this.http.get<PaginatedResponse<UserTestHistoryDto>>(
+      `${this.baseUrl}/all-full`,
+      { params }
+    );
   }
 
-  /** Поиск конкретного userTestId (full) */
+  /**
+   * [НУЖНО, если user-tests-history.component.ts вызывает]
+   * GET /api/UserTests/by-userEmail?email=...&page=...&pageSize=...
+   */
+  getByUserEmail(email: string, page = 1, pageSize = 5): Observable<PaginatedResponse<UserTestHistoryDto>> {
+    const params = new HttpParams()
+      .set('email', email)
+      .set('page', page)
+      .set('pageSize', pageSize);
+
+    return this.http.get<PaginatedResponse<UserTestHistoryDto>>(
+      `${this.baseUrl}/by-userEmail`,
+      { params }
+    );
+  }
+
+  /**
+   * [НУЖНО, если user-tests-history.component.ts вызывает]
+   * GET /api/UserTests/{id}
+   * Допустим, возвращает UserTestHistoryDto
+   */
   getByIdFull(userTestId: number): Observable<UserTestHistoryDto> {
     return this.http.get<UserTestHistoryDto>(`${this.baseUrl}/${userTestId}`);
   }
 
   /**
-   * Поиск по email (full) c пагинацией
-   * /api/UserTests/by-userEmail?email=some@domain&page=1&pageSize=5
+   * [НУЖНО, если user-tests-history.component.ts вызывает]
+   * DELETE /api/UserTests/{id}
    */
-  getByUserEmail(email: string, page = 1, pageSize = 5): Observable<PaginatedResponse<UserTestHistoryDto[]>> {
-    // ОБРАТИТЕ ВНИМАНИЕ: если на бэкенде реализовано иначе, корректируйте.
-    // Предположим, что вы тоже поддерживаете пагинацию при поиске по email
-    let params = new HttpParams()
-      .set('email', email)
-      .set('page', page)
-      .set('pageSize', pageSize);
-
-    return this.http.get<PaginatedResponse<UserTestHistoryDto[]>>(`${this.baseUrl}/by-userEmail`, { params });
-  }
-
-  /** Удалить userTest */
   deleteUserTest(userTestId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${userTestId}`);
-  }
-
-  /** Запускаем прохождение теста */
-  startTest(testId: number): Observable<UserTestDto> {
-    return this.http.post<UserTestDto>(`${this.baseUrl}/start/${testId}`, {});
   }
 }

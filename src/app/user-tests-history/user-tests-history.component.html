@@ -30,13 +30,25 @@
         (<i>{{ item.topicName || '---' }}</i>),
         <strong>Questions:</strong> {{ item.testCountOfQuestions }}<br/>
 
-        <!-- Показываем Correct: X/Y только если не Survey -->
+        <!-- Показываем Correct: X/Y (если не Survey) -->
         <span *ngIf="!item.topicIsSurvey">
           <strong>Correct:</strong> {{ item.correctAnswers }} / {{ item.totalQuestions }}
         </span>
         <br/>
 
-        <strong>Date:</strong> {{ item.dateCreated }}
+        <strong>DateCreated:</strong> {{ item.dateCreated }}<br/>
+
+        <!-- Показ времени -->
+        <ng-container *ngIf="item.startTime">
+          <strong>Started:</strong> {{ item.startTime }}<br/>
+        </ng-container>
+        <ng-container *ngIf="item.endTime">
+          <strong>Ended:</strong> {{ item.endTime }}<br/>
+        </ng-container>
+        <ng-container *ngIf="item.timeSpentSeconds != null">
+          <strong>Time Spent:</strong>
+          {{ item.timeSpentSeconds }} seconds<br/>
+        </ng-container>
       </div>
 
       <div>
@@ -46,7 +58,8 @@
                 *ngIf="isAdmin">
           Delete
         </button>
-        <!-- Кнопка Expand/Collapse -->
+
+        <!-- Кнопка раскрытия -->
         <button class="btn btn-sm btn-outline-primary ms-2"
                 (click)="toggleExpand(item.userTestId)">
           {{ expanded[item.userTestId] ? 'Hide' : 'Show' }} details
@@ -54,20 +67,45 @@
       </div>
     </div>
 
-    <!-- Детали (questions/answers) -->
+    <!-- Детали: список вопросов -->
     <div *ngIf="expanded[item.userTestId]" class="mt-3">
       <hr/>
-      <div *ngFor="let q of item.questions" class="mb-2 ps-3">
-        <h5>{{ q.questionText }}</h5>
-        <div class="ms-3" *ngFor="let ans of q.answers">
-          <input type="checkbox"
-                 disabled
-                 [checked]="ans.isChosen"
-                 [ngClass]="getAnswerClass(ans)" />
-          <span [ngClass]="getAnswerClass(ans)">
-            {{ ans.text }}
-          </span>
+      <div *ngFor="let q of item.questions" class="mb-3 ps-3 border-bottom pb-2">
+        <h5>
+          {{ q.questionText }}
+          <small class="text-muted">[Type={{ q.questionType }}]</small>
+        </h5>
+
+        <!-- Если есть массив answerOptions -->
+        <div class="ms-3" *ngIf="q.answerOptions && q.answerOptions.length > 0; else noAnswers">
+          <ng-container *ngFor="let ans of q.answerOptions">
+            
+            <!-- Если у ответа есть userTextAnswer -> (OpenText) -->
+            <div *ngIf="ans.userTextAnswer">
+              <strong>Your text answer:</strong>
+              <span [ngClass]="getTextAnswerClass(ans)">
+                {{ ans.userTextAnswer }}
+              </span>
+            </div>
+
+            <!-- Иначе это вариант ответа (Single/Multiple/Survey) -->
+            <div *ngIf="!ans.userTextAnswer">
+              <input type="checkbox"
+                     disabled
+                     [checked]="ans.isChosen"
+                     [ngClass]="getAnswerClass(ans)" />
+              <span [ngClass]="getAnswerClass(ans)">
+                {{ ans.text }}
+              </span>
+              <span *ngIf="ans.isCorrect" class="text-success ms-2">
+                (Correct)
+              </span>
+            </div>
+          </ng-container>
         </div>
+        <ng-template #noAnswers>
+          <em class="text-muted">No answers found.</em>
+        </ng-template>
       </div>
     </div>
   </div>

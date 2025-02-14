@@ -1,33 +1,43 @@
 // src/app/dtos/user-test-history.dto.ts
 
+import { QuestionTypeEnum } from '../enums/question-type.enum';
+
 export interface UserTestHistoryDto {
   userTestId: number;
+  userEmail: string;
+  userFullName: string;
+  testName: string;
+  topicName?: string;
+  testCountOfQuestions: number;
   dateCreated: string;
-  isPassed: boolean;
   correctAnswers: number;
   totalQuestions: number;
+  isPassed: boolean;
 
-  userId: string;
-  userEmail: string | null;
-  userFullName: string | null;
+  startTime?: string;
+  endTime?: string;
+  timeSpentSeconds?: number;
+  topicIsSurvey?: boolean; // если нужно
 
-  testId: number;
-  testName: string | null;
-  testCountOfQuestions: number;
-  topicName: string | null;
+  questions: QuestionHistoryDto[];
+}
 
-  /** Новое поле */
-  topicIsSurvey: boolean;
+export interface QuestionHistoryDto {
+  userTestQuestionId: number;
+  questionId: number;
+  questionText: string;
 
-  questions: {
-    userTestQuestionId: number;
-    questionId: number;
-    questionText: string;
-    answers: {
-      answerOptionId: number;
-      text: string;
-      isCorrect: boolean;
-      isChosen: boolean;
-    }[];
-  }[];
+  // 0 = SingleChoice, 1=MultipleChoice, 2=Survey, 3=OpenText (к примеру)
+  questionType: QuestionTypeEnum;
+
+  // Массив ответов
+  answerOptions: AnswerHistoryDto[];
+}
+
+export interface AnswerHistoryDto {
+  answerOptionId?: number;
+  text?: string;
+  isCorrect: boolean;
+  isChosen: boolean;
+  userTextAnswer?: string;
 }

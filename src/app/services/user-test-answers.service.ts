@@ -3,7 +3,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserAnswerSubmitDto, TestCheckResultDto } from './user-tests.service';
+import {
+  UserAnswerSubmitDto,
+  TestCheckResultDto
+} from './user-tests.service'; // <-- важно, импортируем отсюда
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +18,6 @@ export class UserTestAnswersService {
 
   /** POST /api/UserTestAnswers/{userTestId}/save */
   saveAnswers(userTestId: number, answers: UserAnswerSubmitDto[]): Observable<string> {
-    // Сервер возвращает строку "Answers saved!"
     return this.http.post<string>(`${this.baseUrl}/${userTestId}/save`, answers);
   }
 
