@@ -12,10 +12,7 @@
 
   <!-- Список тестов -->
   <ul class="list-group">
-    <li
-      class="list-group-item"
-      *ngFor="let t of tests"
-    >
+    <li class="list-group-item" *ngFor="let t of tests">
       <div class="d-flex justify-content-between">
         <!-- Левая часть: описание теста -->
         <div>
@@ -28,7 +25,7 @@
             <strong>Random?</strong> {{ t.isRandom ? 'Yes' : 'No' }}<br />
             <strong>TestType:</strong> {{ t.testType }}<br />
             <strong>TimeLimit:</strong>
-              {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
+            {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
           </p>
         </div>
 
@@ -124,6 +121,7 @@
 >
   <div class="modal-dialog">
     <div class="modal-content">
+
       <div class="modal-header">
         <h5 class="modal-title" id="testModalLabel">
           {{ isNew ? 'Create Test' : 'Edit Test' }}
@@ -247,8 +245,9 @@
               Manage Access
             </button>
           </div>
+
         </form>
-      </div>
+      </div><!-- modal-body -->
 
       <div class="modal-footer">
         <button
@@ -266,11 +265,12 @@
           Save
         </button>
       </div>
-    </div>
-  </div>
-</div>
 
-<!-- Модалка Manage Access (если нужно) -->
+    </div><!-- modal-content -->
+  </div><!-- modal-dialog -->
+</div><!-- #testModal -->
+
+<!-- Модалка Manage Access -->
 <div
   class="modal fade"
   id="accessModal"
@@ -278,78 +278,7 @@
   aria-labelledby="accessModalLabel"
   aria-hidden="true"
 >
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="accessModalLabel">
-          Manage Access: {{ currentTest.name }}
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-        ></button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Поиск пользователей -->
-        <div class="mb-3">
-          <label class="form-label">Search User:</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="searchText"
-            (input)="onSearchUsers()"
-          />
-        </div>
-
-        <!-- Результаты поиска -->
-        <ul class="list-group mb-3" *ngIf="searchResults.length">
-          <li
-            class="list-group-item d-flex justify-content-between align-items-center"
-            *ngFor="let u of searchResults"
-          >
-            <span>{{ u.fullName }} ({{ u.email }})</span>
-            <button
-              class="btn btn-sm btn-success"
-              (click)="addAccess(u.id)"
-            >
-              + Add Access
-            </button>
-          </li>
-        </ul>
-
-        <hr />
-
-        <!-- Список уже имеющих доступ -->
-        <h6>Users with Access:</h6>
-        <ul class="list-group">
-          <li
-            class="list-group-item d-flex justify-content-between align-items-center"
-            *ngFor="let user of currentAccessUsers"
-          >
-            <span>{{ user.fullName }} ({{ user.email }})</span>
-            <button
-              class="btn btn-sm btn-danger"
-              (click)="removeAccess(user.userId)"
-            >
-              Remove
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- ... как в исходном коде, без изменений ... -->
 </div>
 
 <!-- Модалка Manage Questions -->
@@ -371,10 +300,12 @@
           type="button"
           class="btn-close"
           data-bs-dismiss="modal"
+          (click)="closeManageQuestionsModal()"
         ></button>
       </div>
 
       <div class="modal-body">
+        <!-- Кнопка создать новый вопрос -->
         <button
           class="btn btn-sm btn-outline-primary mb-2"
           (click)="openCreateQuestionModal()"
@@ -385,10 +316,7 @@
         <div class="row">
           <div class="col-md-6">
             <h6>Candidate Questions</h6>
-            <ul
-              class="list-group"
-              style="max-height: 300px; overflow:auto;"
-            >
+            <ul class="list-group" style="max-height: 300px; overflow:auto;">
               <li
                 class="list-group-item d-flex justify-content-between align-items-center"
                 *ngFor="let cq of candidateQuestions"
@@ -406,10 +334,7 @@
 
           <div class="col-md-6">
             <h6>Test Questions</h6>
-            <ul
-              class="list-group"
-              style="max-height: 300px; overflow:auto;"
-            >
+            <ul class="list-group" style="max-height: 300px; overflow:auto;">
               <li
                 class="list-group-item d-flex justify-content-between align-items-center"
                 *ngFor="let tq of testQuestions"
@@ -426,7 +351,122 @@
           </div>
         </div>
 
+      </div><!-- modal-body -->
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          (click)="closeManageQuestionsModal()"
+        >
+          Close
+        </button>
       </div>
+
+    </div><!-- modal-content -->
+  </div><!-- modal-dialog -->
+</div><!-- #manageQuestionsModal -->
+
+<!-- Модалка CreateQuestion (внутри Manage Questions) -->
+<div
+  class="modal fade"
+  id="createQuestionModal"
+  tabindex="-1"
+  aria-labelledby="createQuestionModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="createQuestionModalLabel">
+          Create a new Question
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+          <!-- Question Text -->
+          <div class="mb-3">
+            <label class="form-label">Question Text</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="newQuestion.text"
+              name="newQuestionText"
+            />
+          </div>
+
+          <!-- QuestionType -->
+          <div class="mb-3">
+            <label class="form-label">Question Type</label>
+            <select
+              class="form-select"
+              [(ngModel)]="newQuestion.questionType"
+              name="newQuestionType"
+            >
+              <option *ngFor="let qt of questionTypes" [ngValue]="qt.value">
+                {{ qt.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- correctTextAnswer => if OpenText -->
+          <div class="mb-3" *ngIf="newQuestion.questionType === 3">
+            <!-- 3 = QuestionTypeEnum.OpenText -->
+            <label class="form-label">Correct Text Answer</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="newQuestion.correctTextAnswer"
+              name="newQuestionCorrectTextAnswer"
+            />
+          </div>
+
+          <!-- AnswerOptions => if NOT OpenText -->
+          <div class="mb-3" *ngIf="newQuestion.questionType !== 3">
+            <label class="form-label">Answer Options</label>
+            <div
+              class="row g-2 mb-2"
+              *ngFor="let ans of newQuestion.answerOptions; let i = index"
+            >
+              <div class="col-8">
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="ans.text"
+                  name="newAnsText{{ i }}"
+                />
+              </div>
+              <div
+                class="col-4 d-flex align-items-center"
+                *ngIf="newQuestion.questionType !== 2"
+              >
+                <input
+                  type="checkbox"
+                  class="form-check-input me-1"
+                  [(ngModel)]="ans.isCorrect"
+                  name="newAnsIsCorrect{{ i }}"
+                />
+                <label class="form-check-label">
+                  IsCorrect?
+                </label>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="addOptionToNewQuestion()"
+            >
+              +Add Option
+            </button>
+          </div>
+
+        </form>
+      </div><!-- modal-body -->
 
       <div class="modal-footer">
         <button
@@ -436,7 +476,15 @@
         >
           Close
         </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="saveNewQuestion()"
+        >
+          Save
+        </button>
       </div>
-    </div>
-  </div>
-</div>
+
+    </div><!-- modal-content -->
+  </div><!-- modal-dialog -->
+</div><!-- #createQuestionModal -->

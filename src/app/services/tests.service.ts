@@ -16,12 +16,11 @@ export class TestsService {
   
   // tests.service.ts
   addQuestionToTest(testId: number, questionId: number): Observable<TestDto> {
-    // POST /api/tests/{testId}/questions/{questionId}
     return this.http.post<TestDto>(`${this.baseUrl}/${testId}/questions/${questionId}`, {});
   }
 
+  // Удалить вопрос из теста
   removeQuestionFromTest(testId: number, questionId: number): Observable<TestDto> {
-    // DELETE /api/tests/{testId}/questions/{questionId}
     return this.http.delete<TestDto>(`${this.baseUrl}/${testId}/questions/${questionId}`);
   }
 

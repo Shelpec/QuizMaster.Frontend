@@ -1,24 +1,61 @@
-<div class="nav-bar p-2 bg-light mb-3 d-flex justify-content-between align-items-center">
-  <!-- Навигация -->
-  <div class="d-flex align-items-center">
-    <a routerLink="/questions" class="btn btn-link">Home</a>
-    <a routerLink="/tests" class="btn btn-link mx-3">Tests</a>
+<!-- Bootstrap navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
 
-    <ng-container *ngIf="!authService.isLoggedIn()">
-      <a routerLink="/login" class="btn btn-link">Login</a>
-      <a routerLink="/register" class="btn btn-link">Register</a>
-    </ng-container>
+    <!-- Логотип + Название -->
+    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+      <!-- Логотип. Подложите картинку в assets/logo.png, или любой URL -->
+      <img
+        src="assets/logo.png"
+        alt="Logo"
+        width="32"
+        height="32"
+        class="me-2 rounded"
+      />
+      <span>QuizMaster</span>
+    </a>
 
-    <ng-container *ngIf="authService.isLoggedIn()">
-      <button class="btn btn-secondary" (click)="logout()">Logout</button>
-    </ng-container>
-  </div>
+    <!-- Кнопка «гамбургер» для мобильных (Bootstrap) -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-  <!-- Переключатель тем (из ThemeService) -->
-  <div class="theme-switcher">
-    <button class="btn btn-secondary rounded-circle p-2" (click)="themeService.toggleTheme()">
-      <i [class]="themeService.getCurrentTheme() === 'light-theme' ? 'bi bi-moon' : 'bi bi-sun'"></i>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav ms-auto">
+        <!-- Ссылки -->
+        <a class="nav-link" routerLink="/">Home</a>
+        <a class="nav-link" routerLink="/tests">Tests</a>
+        <a class="nav-link" routerLink="/questions">Questions</a>
+
+        <!-- Если НЕ авторизован -->
+        <ng-container *ngIf="!authService.isLoggedIn(); else loggedIn">
+          <a class="nav-link" routerLink="/login">Login</a>
+          <a class="nav-link" routerLink="/register">Register</a>
+        </ng-container>
+
+        <!-- Если авторизован -->
+        <ng-template #loggedIn>
+          <a class="nav-link" routerLink="/history-user-tests">History</a>
+          <!-- Logout -->
+          <a class="nav-link text-danger" (click)="logout()">Logout</a>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Переключатель тем (справа) -->
+    <button class="btn btn-outline-light ms-3" (click)="themeService.toggleTheme()">
+      {{ themeService.getCurrentTheme() === 'light-theme' ? 'Dark Theme' : 'Light Theme' }}
     </button>
   </div>
-</div>
+</nav>
+
+<!-- Основная часть -->
 <router-outlet></router-outlet>

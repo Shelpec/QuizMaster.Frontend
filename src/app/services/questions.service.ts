@@ -56,7 +56,12 @@ export class QuestionsService {
     return this.http.get<Question>(`${this.baseUrl}/${id}`);
   }
 
+  // Создать вопрос
   createQuestion(dto: CreateQuestionDto): Observable<Question> {
+    // Если topicId не установлен, проставляем topicId=1 (или любой другой по умолчанию)
+    if (!dto.topicId) {
+      dto.topicId = 1;
+    }
     return this.http.post<Question>(this.baseUrl, dto);
   }
 

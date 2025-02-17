@@ -3,41 +3,21 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-// Сервисы
 import { AuthService } from '../services/auth.service';
 import { TestsService } from '../services/tests.service';
 import { TopicsService } from '../services/topics.service';
 import { QuestionsService } from '../services/questions.service';
 
-// DTO/enums
 import { TestDto, TestTypeEnum } from '../dtos/test.dto';
 import { TopicDto } from '../dtos/topic.dto';
 import { Question, QuestionTypeEnum } from '../dtos/question.dto';
 import { PaginatedResponse } from '../dtos/paginated-response';
 
-// Если используете "Manage Access"
 import { TestAccessService, IAccessUser } from '../services/test-access.service';
 import { UsersService, IUser } from '../services/users.service';
 
-// Импортируем компонент Analytics (standalone)
+// Компонент аналитики standalone
 import { TestAnalyticsComponent } from '../analytics/test-analytics.component';
-
-// Функция определения типов вопросов по testType
-function getAllowedTypes(tt: TestTypeEnum): QuestionTypeEnum[] {
-  if (tt === TestTypeEnum.QuestionsOnly) {
-    return [QuestionTypeEnum.SingleChoice, QuestionTypeEnum.MultipleChoice];
-  } else if (tt === TestTypeEnum.SurveyOnly) {
-    return [QuestionTypeEnum.Survey, QuestionTypeEnum.OpenText];
-  } else {
-    // Mixed => все 4
-    return [
-      QuestionTypeEnum.SingleChoice,
-      QuestionTypeEnum.MultipleChoice,
-      QuestionTypeEnum.Survey,
-      QuestionTypeEnum.OpenText
-    ];
-  }
-}
 
 @Component({
   selector: 'app-test-list',
@@ -45,7 +25,6 @@ function getAllowedTypes(tt: TestTypeEnum): QuestionTypeEnum[] {
   imports: [
     CommonModule,
     FormsModule,
-    // Подключаем компонент аналитики, чтобы можно было <app-test-analytics> внутри использовать
     TestAnalyticsComponent
   ],
   templateUrl: './test-list.component.html'
@@ -62,7 +41,7 @@ export class TestListComponent implements OnInit {
   // Список топиков
   topics: TopicDto[] = [];
 
-  // Текущий тест
+  // Текущий тест (для Create/Edit)
   isNew = false;
   currentTest: Partial<TestDto> = {
     name: '',
@@ -74,6 +53,7 @@ export class TestListComponent implements OnInit {
     timeLimitMinutes: null
   };
 
+  // Типы теста
   testTypes = [
     { label: 'QuestionsOnly', value: TestTypeEnum.QuestionsOnly },
     { label: 'SurveyOnly',    value: TestTypeEnum.SurveyOnly },
@@ -89,7 +69,26 @@ export class TestListComponent implements OnInit {
   candidateQuestions: Question[] = [];
   testQuestions: Question[] = [];
 
-  // Для показа/скрытия блока аналитики
+  // Для создания вопроса (внутри 'Manage Questions')
+  isCreateQuestion = false;
+  newQuestion: Partial<Question> = {
+    text: '',
+    questionType: QuestionTypeEnum.SingleChoice,
+    answerOptions: [
+      { id: 0, text: '', isCorrect: false },
+      { id: 0, text: '', isCorrect: false }
+    ]
+  };
+
+  // Список типов вопроса
+  questionTypes = [
+    { value: QuestionTypeEnum.SingleChoice,   label: 'SingleChoice' },
+    { value: QuestionTypeEnum.MultipleChoice, label: 'MultipleChoice' },
+    { value: QuestionTypeEnum.Survey,         label: 'Survey' },
+    { value: QuestionTypeEnum.OpenText,       label: 'OpenText' }
+  ];
+
+  // Для показа/скрытия аналитики
   shownAnalytics: { [testId: number]: boolean } = {};
 
   constructor(
@@ -106,6 +105,9 @@ export class TestListComponent implements OnInit {
     this.loadTests();
   }
 
+  // ========================
+  // Загрузка списка тестов
+  // ========================
   loadTests(): void {
     this.testsService.getAllTests(this.currentPage, this.pageSize).subscribe({
       next: (res: PaginatedResponse<TestDto>) => {
@@ -132,12 +134,12 @@ export class TestListComponent implements OnInit {
   }
 
   // ========================
-  // CREATE / EDIT
+  // CREATE / EDIT Test
   // ========================
   loadTopics(): void {
     this.topicsService.getAll().subscribe({
-      next: (res: TopicDto[]) => this.topics = res,
-      error: (err: any) => console.error('Error loading topics', err)
+      next: (res) => this.topics = res,
+      error: (err) => console.error('Error loading topics', err)
     });
   }
 
@@ -201,6 +203,7 @@ export class TestListComponent implements OnInit {
         next: (created: TestDto) => {
           this.hideModal('testModal');
           this.loadTests();
+          // Если private, можно сразу открыть Manage Access
           if (isPrivate && created.id) {
             this.currentTest = created;
             this.openAccessModal();
@@ -216,7 +219,7 @@ export class TestListComponent implements OnInit {
         name, count, topicId,
         isPrivate, isRandom, testType, timeLimit
       ).subscribe({
-        next: (updated: TestDto) => {
+        next: () => {
           this.hideModal('testModal');
           this.loadTests();
         },
@@ -226,22 +229,40 @@ export class TestListComponent implements OnInit {
   }
 
   deleteTest(t: TestDto): void {
-    if (!confirm(`Delete test "${t.name}"?`)) return;
+    if (!confirm(`Delete test \"${t.name}\"?`)) return;
     this.testsService.deleteTest(t.id).subscribe({
       next: () => this.loadTests(),
       error: (err: any) => console.error('Error deleting test', err)
     });
   }
 
+  // ========================
+  // START TEST (проверка количества вопросов)
+  // ========================
   onStartTest(t: TestDto): void {
-    this.router.navigate(['/start-test', t.id]);
+    // Перед стартом нужно проверить, есть ли ровно countOfQuestions вопросов
+    // Получаем список вопросов для теста и сравниваем
+    this.testsService.getTestQuestions(t.id).subscribe({
+      next: (qList) => {
+        if (qList.length !== t.countOfQuestions) {
+          alert(
+            `Для теста \"${t.name}\" нужно ровно ${t.countOfQuestions} вопросов!\n` +
+            `Сейчас в тесте: ${qList.length}.`
+          );
+          return;
+        }
+        // Иначе переходим на старт
+        this.router.navigate(['/start-test', t.id]);
+      },
+      error: (err) => console.error('Error loading test questions', err)
+    });
   }
 
   // ========================
   // MANAGE ACCESS (private)
   // ========================
   openAccessModal(): void {
-    if (!this.currentTest.id) return;
+    if (!this.currentTest?.id) return;
     this.searchText = '';
     this.searchResults = [];
     this.loadAccessList(this.currentTest.id);
@@ -270,7 +291,7 @@ export class TestListComponent implements OnInit {
   }
 
   addAccess(userId: string): void {
-    if (!this.currentTest.id) return;
+    if (!this.currentTest?.id) return;
     this.testAccessService.addAccess(this.currentTest.id, userId).subscribe({
       next: () => this.loadAccessList(this.currentTest!.id!),
       error: (err: any) => console.error('Error adding access', err)
@@ -278,7 +299,7 @@ export class TestListComponent implements OnInit {
   }
 
   removeAccess(userId: string): void {
-    if (!this.currentTest.id) return;
+    if (!this.currentTest?.id) return;
     this.testAccessService.removeAccess(this.currentTest.id, userId).subscribe({
       next: () => this.loadAccessList(this.currentTest!.id!),
       error: (err: any) => console.error('Error removing access', err)
@@ -299,13 +320,12 @@ export class TestListComponent implements OnInit {
   }
 
   private loadManageQuestionsData(t: TestDto): void {
-    // 1) Загружаем уже связанные вопросы
+    // Загружаем уже связанные вопросы
     this.testsService.getTestQuestions(t.id).subscribe({
       next: (qList: Question[]) => {
         this.testQuestions = qList;
       },
       error: (err: any) => {
-        // Если 404 => нет вопросов
         if (err.status === 404) {
           this.testQuestions = [];
         } else {
@@ -314,7 +334,7 @@ export class TestListComponent implements OnInit {
       }
     });
 
-    // 2) Загружаем candidate questions
+    // Candidate questions
     this.testsService.getCandidateQuestions(t.id).subscribe({
       next: (candQ: Question[]) => {
         this.candidateQuestions = candQ;
@@ -327,9 +347,20 @@ export class TestListComponent implements OnInit {
   }
 
   addQuestionToTest(questionId: number): void {
-    if (!this.currentTest.id) return;
+    if (!this.currentTest?.id) return;
+
+    // Если уже достигли нужного числа вопросов
+    if (
+      this.currentTest.countOfQuestions != null &&
+      this.testQuestions.length >= this.currentTest.countOfQuestions
+    ) {
+      alert('Нельзя добавлять сверх указанного количества!');
+      return;
+    }
+
     this.testsService.addQuestionToTest(this.currentTest.id, questionId).subscribe({
       next: (updatedTest: TestDto) => {
+        // Обновляем список testQuestions
         if (updatedTest.testQuestions) {
           this.testQuestions = updatedTest.testQuestions
             .filter(tq => tq.question != null)
@@ -341,7 +372,17 @@ export class TestListComponent implements OnInit {
   }
 
   removeQuestionFromTest(questionId: number): void {
-    if (!this.currentTest.id) return;
+    if (!this.currentTest?.id) return;
+
+    // Если у нас и так меньше или ровно нужного количества — нельзя удалять
+    if (
+      this.currentTest.countOfQuestions != null &&
+      this.testQuestions.length <= this.currentTest.countOfQuestions
+    ) {
+      alert('Нельзя удалять, так как будет меньше требуемого количества!');
+      return;
+    }
+
     this.testsService.removeQuestionFromTest(this.currentTest.id, questionId).subscribe({
       next: (updatedTest: TestDto) => {
         if (updatedTest.testQuestions) {
@@ -354,8 +395,78 @@ export class TestListComponent implements OnInit {
     });
   }
 
+  // Открываем модалку \"createQuestionModal\"
   openCreateQuestionModal(): void {
-    // здесь вы можете открыть свою модалку CreateQuestion
+    this.isCreateQuestion = true;
+    this.newQuestion = {
+      text: '',
+      questionType: QuestionTypeEnum.SingleChoice,
+      answerOptions: [
+        { id: 0, text: '', isCorrect: false },
+        { id: 0, text: '', isCorrect: false }
+      ]
+    };
+    this.showModal('createQuestionModal');
+  }
+
+  addOptionToNewQuestion(): void {
+    if (!this.newQuestion.answerOptions) {
+      this.newQuestion.answerOptions = [];
+    }
+    this.newQuestion.answerOptions.push({
+      id: 0,
+      text: '',
+      isCorrect: false
+    });
+  }
+
+  // Сохраняем вопрос => POST /api/questions => добавляем в candidateQuestions
+  saveNewQuestion(): void {
+    if (!this.newQuestion.text || !this.newQuestion.text.trim()) {
+      alert('Question text is required!');
+      return;
+    }
+
+    const qType = this.newQuestion.questionType ?? QuestionTypeEnum.SingleChoice;
+    const isSurvey = (qType === QuestionTypeEnum.Survey);
+
+    // DTO для создания
+    const dto: any = {
+      text: this.newQuestion.text.trim(),
+      // Если хотим, чтобы topicId всегда был как у теста:
+      topicId: this.currentTest?.topicId ?? 1,
+      questionType: qType,
+      correctTextAnswer: null,
+      answerOptions: []
+    };
+
+    if (qType === QuestionTypeEnum.OpenText) {
+      dto.correctTextAnswer = this.newQuestion.correctTextAnswer ?? '';
+      dto.answerOptions = [];
+    } else {
+      let arr = this.newQuestion.answerOptions ?? [];
+      arr = arr.filter(a => a.text && a.text.trim() !== '');
+      dto.answerOptions = arr.map(a => ({
+        text: a.text,
+        // Если Survey => все isCorrect=false
+        isCorrect: isSurvey ? false : a.isCorrect
+      }));
+    }
+
+    this.questionsService.createQuestion(dto).subscribe({
+      next: (createdQ) => {
+        // Добавляем в candidateQuestions
+        this.candidateQuestions.push(createdQ);
+        this.hideModal('createQuestionModal');
+      },
+      error: (err) => console.error('Error creating question', err)
+    });
+  }
+
+  closeManageQuestionsModal(): void {
+    this.hideModal('manageQuestionsModal');
+    // Здесь можно дополнительно проверять, если у нас вопросы < требуемого кол-ва...
+    // Но мы уже делаем проверку при старте теста
   }
 
   // ========================

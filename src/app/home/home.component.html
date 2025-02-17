@@ -1,0 +1,62 @@
+<div class="container mt-4">
+    <div class="p-5 mb-4 bg-light rounded-3">
+      <div class="container py-5">
+        <h1 class="display-5 fw-bold">Добро пожаловать в QuizMasterAPI!</h1>
+        <p class="col-md-8 fs-4">
+          Это платформа для создания и прохождения тестов. Вы можете создавать тесты,
+          добавлять вопросы, управлять темами, следить за результатами и многое другое!
+        </p>
+  
+        <!-- Блок, если пользователь НЕ авторизован -->
+        <div *ngIf="!authService.isLoggedIn()">
+          <button class="btn btn-primary btn-lg me-3" routerLink="/login">Войти</button>
+          <button class="btn btn-outline-secondary btn-lg" routerLink="/register">
+            Регистрация
+          </button>
+        </div>
+  
+        <!-- Блок, если пользователь авторизован (обычный User или Admin) -->
+        <div *ngIf="authService.isLoggedIn()">
+          <!-- Ссылка на список тестов -->
+          <button class="btn btn-success btn-lg me-3" routerLink="/tests">
+            Перейти к тестам
+          </button>
+          <!-- Ссылка на историю прохождений -->
+          <button class="btn btn-warning btn-lg" routerLink="/history-user-tests">
+            Моя история тестов
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <div class="row align-items-md-stretch">
+      <div class="col-md-6 mb-3">
+        <div class="h-100 p-5 text-bg-dark rounded-3">
+          <h2>Преимущества QuizMasterAPI</h2>
+          <ul>
+            <li>Удобное управление вопросами и тестами</li>
+            <li>Гибкая настройка доступа (приватные/публичные тесты)</li>
+            <li>Система аналитики и истории прохождений</li>
+          </ul>
+          <!-- Доп. ссылка на список вопросов -->
+          <button class="btn btn-outline-light mt-3" type="button" routerLink="/questions">
+            Список вопросов
+          </button>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="h-100 p-5 bg-light border rounded-3">
+          <h2>Информация о проекте</h2>
+          <p>
+            Данный сайт разработан для упрощения процесса обучения и оценки знаний.
+            Код написан на ASP.NET Core (backend) и Angular (frontend).
+          </p>
+          <p>
+            Пройдите авторизацию, чтобы получить полный доступ к функционалу:
+            создавать и редактировать тесты, просматривать результаты и др.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
