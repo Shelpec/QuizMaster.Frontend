@@ -22,7 +22,7 @@ export class UserTestsHistoryComponent implements OnInit {
   // История
   allUserTests: UserTestHistoryDto[] = [];
 
-  // Поля поиска
+  // Поля для поиска
   searchUserTestId: number | null = null;
   searchEmail: string = '';
 
@@ -171,25 +171,20 @@ export class UserTestsHistoryComponent implements OnInit {
     });
   }
 
-  /**
-   * Подсвечиваем только те варианты, которые выбрал пользователь (isChosen=true).
-   * Если isChosen + isCorrect => 'selected-correct', иначе 'selected-wrong'.
-   */
+  /** Подсвечиваем выбранные варианты (isChosen=true). 
+      Если isCorrect => зелёный, иначе красный. */
   getAnswerClass(ans: { isCorrect: boolean; isChosen: boolean }): string {
     if (!ans.isChosen) return '';
     return ans.isCorrect ? 'selected-correct' : 'selected-wrong';
   }
 
-  /**
-   * Подсветка для текстового ответа (OpenText).
-   * Можно считать всё "зелёным", или проверять, действительно ли пользователь верно ответил.
-   */
+  /** Подсветка для OpenText */
   getTextAnswerClass(ans: { userTextAnswer?: string; isCorrect?: boolean }): string {
-    // Если у вас есть реальная логика проверки, можно делать if (ans.isCorrect===false) => red
+    // Так как на бэкенде выставляем isCorrect=true для OpenText,
+    // она будет зелёной (selected-correct).
     if (ans.isCorrect === false) {
       return 'selected-wrong';
     }
-    // Иначе
     return 'selected-correct';
   }
 }

@@ -13,59 +13,78 @@
   <!-- Список тестов -->
   <ul class="list-group">
     <li
-      class="list-group-item d-flex justify-content-between align-items-center"
+      class="list-group-item"
       *ngFor="let t of tests"
     >
-      <div>
-        <h5>{{ t.name }}</h5>
-        <p>
-          <strong>Count:</strong> {{ t.countOfQuestions }}<br />
-          <strong>Topic:</strong> {{ t.topicName || '---' }}<br />
-          <strong>Created:</strong> {{ t.createdAt }}<br />
-          <strong>Private?</strong> {{ t.isPrivate ? 'Yes' : 'No' }}<br />
-          <strong>Random?</strong> {{ t.isRandom ? 'Yes' : 'No' }}<br />
-          <strong>TestType:</strong> {{ t.testType }}<br />
-          <strong>TimeLimit:</strong>
-            {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
-        </p>
+      <div class="d-flex justify-content-between">
+        <!-- Левая часть: описание теста -->
+        <div>
+          <h5>{{ t.name }}</h5>
+          <p>
+            <strong>Count:</strong> {{ t.countOfQuestions }}<br />
+            <strong>Topic:</strong> {{ t.topicName || '---' }}<br />
+            <strong>Created:</strong> {{ t.createdAt }}<br />
+            <strong>Private?</strong> {{ t.isPrivate ? 'Yes' : 'No' }}<br />
+            <strong>Random?</strong> {{ t.isRandom ? 'Yes' : 'No' }}<br />
+            <strong>TestType:</strong> {{ t.testType }}<br />
+            <strong>TimeLimit:</strong>
+              {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
+          </p>
+        </div>
+
+        <!-- Правая часть: кнопки действий -->
+        <div class="d-flex flex-column gap-2">
+          <!-- Edit (Admin) -->
+          <button
+            class="btn btn-sm btn-secondary"
+            (click)="openEditModal(t)"
+            *ngIf="authService.isLoggedIn() && authService.isAdmin()"
+          >
+            Edit
+          </button>
+
+          <!-- Manage Questions (Admin only, isRandom=false) -->
+          <button
+            class="btn btn-sm btn-info"
+            *ngIf="authService.isLoggedIn() && authService.isAdmin() && t.isRandom === false"
+            (click)="openManageQuestions(t)"
+          >
+            Manage Q
+          </button>
+
+          <!-- Delete (Admin) -->
+          <button
+            class="btn btn-sm btn-danger"
+            (click)="deleteTest(t)"
+            *ngIf="authService.isLoggedIn() && authService.isAdmin()"
+          >
+            Delete
+          </button>
+
+          <!-- Start (User) -->
+          <button
+            class="btn btn-sm btn-success"
+            (click)="onStartTest(t)"
+            *ngIf="authService.isLoggedIn()"
+          >
+            Start
+          </button>
+
+          <!-- Show Analytics (Admin only) -->
+          <button
+            class="btn btn-sm btn-primary"
+            *ngIf="authService.isAdmin()"
+            (click)="toggleShowAnalytics(t.id)"
+          >
+            {{ shownAnalytics[t.id] ? 'Hide' : 'Show' }} Analytics
+          </button>
+        </div>
       </div>
 
-      <div class="d-flex gap-2">
-        <!-- Edit (Admin) -->
-        <button
-          class="btn btn-sm btn-secondary"
-          (click)="openEditModal(t)"
-          *ngIf="authService.isLoggedIn() && authService.isAdmin()"
-        >
-          Edit
-        </button>
-
-        <!-- Manage Questions (Admin only, isRandom=false) -->
-        <button
-          class="btn btn-sm btn-info"
-          *ngIf="authService.isLoggedIn() && authService.isAdmin() && t.isRandom === false"
-          (click)="openManageQuestions(t)"
-        >
-          Manage Questions
-        </button>
-
-        <!-- Delete (Admin) -->
-        <button
-          class="btn btn-sm btn-danger"
-          (click)="deleteTest(t)"
-          *ngIf="authService.isLoggedIn() && authService.isAdmin()"
-        >
-          Delete
-        </button>
-
-        <!-- Start (User) -->
-        <button
-          class="btn btn-sm btn-success"
-          (click)="onStartTest(t)"
-          *ngIf="authService.isLoggedIn()"
-        >
-          Start
-        </button>
+      <!-- Блок, где отображаем аналитику, если shownAnalytics[t.id] = true -->
+      <div *ngIf="shownAnalytics[t.id]" class="p-2 mt-2 border">
+        <!-- Здесь рендерим компонент аналитики, передаём testId -->
+        <app-test-analytics [testId]="t.id"></app-test-analytics>
       </div>
     </li>
   </ul>
@@ -251,7 +270,7 @@
   </div>
 </div>
 
-<!-- Модалка Manage Access (пример, если нужно) -->
+<!-- Модалка Manage Access (если нужно) -->
 <div
   class="modal fade"
   id="accessModal"
@@ -333,7 +352,7 @@
   </div>
 </div>
 
-<!-- Модалка Manage Questions (для isRandom=false) -->
+<!-- Модалка Manage Questions -->
 <div
   class="modal fade"
   id="manageQuestionsModal"
@@ -356,7 +375,6 @@
       </div>
 
       <div class="modal-body">
-        <!-- (Optional) кнопка "Create new question" -->
         <button
           class="btn btn-sm btn-outline-primary mb-2"
           (click)="openCreateQuestionModal()"

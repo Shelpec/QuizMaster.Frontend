@@ -1,0 +1,84 @@
+<!-- src/app/analytics/test-analytics.component.html -->
+
+<div class="alert alert-danger" *ngIf="errorMsg">
+    {{ errorMsg }}
+  </div>
+  
+  <div *ngIf="loading">
+    <p>Loading analytics...</p>
+  </div>
+  
+  <div *ngIf="!loading && analyticsData">
+  
+    <h3>{{ analyticsData.testName }} - Analytics</h3>
+    <p>TestId: {{ analyticsData.testId }}</p>
+    <p>Average Score: {{ analyticsData.averageScorePercent | number : '1.0-2' }}%</p>
+    <p>Total Attempts: {{ analyticsData.totalAttempts }}</p>
+  
+    <h5>Difficult Questions (top 3 by wrong rate):</h5>
+    <ul>
+      <li *ngFor="let dq of analyticsData.difficultQuestions">
+        Q#{{ dq.questionId }}: {{ dq.questionText }}
+        — WrongRate: {{ dq.wrongRatePercent | number : '1.0-2' }}%
+      </li>
+    </ul>
+  
+    <hr/>
+  
+    <h4>History</h4>
+    <div class="bg-light p-2 mb-2"
+         *ngFor="let h of analyticsData.history">
+      <div class="d-flex justify-content-between">
+        <div>
+          UserTestId: {{ h.userTestId }} <br/>
+          User: {{ h.userEmail }} ({{ h.userFullName }}) <br/>
+          DateCreated: {{ h.dateCreated }} <br/>
+          Correct: {{ h.correctAnswers }}/{{ h.totalQuestions }}
+        </div>
+        <button class="btn btn-sm btn-outline-primary"
+                (click)="toggleExpandHistory(h)">
+          {{ expandedHistory[h.userTestId] ? 'Hide' : 'Show' }} details
+        </button>
+      </div>
+  
+      <div class="mt-2"
+           *ngIf="expandedHistory[h.userTestId]">
+        <hr/>
+        <div *ngFor="let q of h.questions" class="ps-3 mb-3 border-bottom">
+          <strong>{{ q.questionText }}</strong>
+          <span class="text-muted">[Type={{ q.questionType }}]</span>
+          <div class="ms-3 mt-1"
+               *ngIf="q.answerOptions && q.answerOptions.length > 0; else noAnswers">
+            <ng-container *ngFor="let ans of q.answerOptions">
+  
+              <!-- If userTextAnswer => OpenText -->
+              <div *ngIf="ans.userTextAnswer">
+                <em>Your text answer: </em>
+                <span [ngClass]="getTextAnswerClass(ans)">
+                  {{ ans.userTextAnswer }}
+                </span>
+              </div>
+  
+              <!-- Else: Single/Multiple/Survey -->
+              <div *ngIf="!ans.userTextAnswer">
+                <input type="checkbox"
+                       disabled
+                       [checked]="ans.isChosen"
+                       [ngClass]="getAnswerClass(ans)" />
+                <span [ngClass]="getAnswerClass(ans)">
+                  {{ ans.text }}
+                </span>
+                <span *ngIf="ans.isCorrect" class="text-success ms-1">
+                  (Correct)
+                </span>
+              </div>
+            </ng-container>
+          </div>
+          <ng-template #noAnswers>
+            <em class="text-muted">No answers found.</em>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+  

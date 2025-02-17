@@ -19,6 +19,9 @@ import { PaginatedResponse } from '../dtos/paginated-response';
 import { TestAccessService, IAccessUser } from '../services/test-access.service';
 import { UsersService, IUser } from '../services/users.service';
 
+// Импортируем компонент Analytics (standalone)
+import { TestAnalyticsComponent } from '../analytics/test-analytics.component';
+
 // Функция определения типов вопросов по testType
 function getAllowedTypes(tt: TestTypeEnum): QuestionTypeEnum[] {
   if (tt === TestTypeEnum.QuestionsOnly) {
@@ -39,7 +42,12 @@ function getAllowedTypes(tt: TestTypeEnum): QuestionTypeEnum[] {
 @Component({
   selector: 'app-test-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    // Подключаем компонент аналитики, чтобы можно было <app-test-analytics> внутри использовать
+    TestAnalyticsComponent
+  ],
   templateUrl: './test-list.component.html'
 })
 export class TestListComponent implements OnInit {
@@ -80,6 +88,9 @@ export class TestListComponent implements OnInit {
   // Manage Questions
   candidateQuestions: Question[] = [];
   testQuestions: Question[] = [];
+
+  // Для показа/скрытия блока аналитики
+  shownAnalytics: { [testId: number]: boolean } = {};
 
   constructor(
     public authService: AuthService,
@@ -261,7 +272,7 @@ export class TestListComponent implements OnInit {
   addAccess(userId: string): void {
     if (!this.currentTest.id) return;
     this.testAccessService.addAccess(this.currentTest.id, userId).subscribe({
-      next: () => this.loadAccessList(this.currentTest.id!),
+      next: () => this.loadAccessList(this.currentTest!.id!),
       error: (err: any) => console.error('Error adding access', err)
     });
   }
@@ -269,7 +280,7 @@ export class TestListComponent implements OnInit {
   removeAccess(userId: string): void {
     if (!this.currentTest.id) return;
     this.testAccessService.removeAccess(this.currentTest.id, userId).subscribe({
-      next: () => this.loadAccessList(this.currentTest.id!),
+      next: () => this.loadAccessList(this.currentTest!.id!),
       error: (err: any) => console.error('Error removing access', err)
     });
   }
@@ -286,8 +297,9 @@ export class TestListComponent implements OnInit {
     this.loadManageQuestionsData(t);
     this.showModal('manageQuestionsModal');
   }
+
   private loadManageQuestionsData(t: TestDto): void {
-    // 1) Загружаем уже связанные вопросы (как раньше)
+    // 1) Загружаем уже связанные вопросы
     this.testsService.getTestQuestions(t.id).subscribe({
       next: (qList: Question[]) => {
         this.testQuestions = qList;
@@ -301,8 +313,8 @@ export class TestListComponent implements OnInit {
         }
       }
     });
-  
-    // 2) Вместо questionsService.getAllByTopic(...) → вызываем getCandidateQuestions
+
+    // 2) Загружаем candidate questions
     this.testsService.getCandidateQuestions(t.id).subscribe({
       next: (candQ: Question[]) => {
         this.candidateQuestions = candQ;
@@ -313,7 +325,6 @@ export class TestListComponent implements OnInit {
       }
     });
   }
-  
 
   addQuestionToTest(questionId: number): void {
     if (!this.currentTest.id) return;
@@ -345,6 +356,13 @@ export class TestListComponent implements OnInit {
 
   openCreateQuestionModal(): void {
     // здесь вы можете открыть свою модалку CreateQuestion
+  }
+
+  // ========================
+  // Show/Hide Analytics
+  // ========================
+  toggleShowAnalytics(testId: number) {
+    this.shownAnalytics[testId] = !this.shownAnalytics[testId];
   }
 
   // ========================

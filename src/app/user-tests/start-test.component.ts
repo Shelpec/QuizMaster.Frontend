@@ -172,7 +172,8 @@ export class StartTestComponent implements OnInit, OnDestroy {
         this.surveySaved = true;
         // Спрячем модалку
         this.timeIsUp = false;
-      } else {
+      } 
+      else {
         // Иначе запускаем проверку. После неё скрываем модалку
         this.checkAnswers(() => {
           this.timeIsUp = false;
