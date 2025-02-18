@@ -1,20 +1,20 @@
 <div class="container mt-4">
   <h2 class="mb-3 text-center">List of Tests</h2>
 
-  <!-- Кнопка Create Test (Admin only) -->
+  <!-- Кнопка Create Test (Wizard) -->
   <button
     class="btn btn-primary mb-3"
-    (click)="openCreateModal()"
+    (click)="openCreateTestWizard()"
     *ngIf="authService.isLoggedIn() && authService.isAdmin()"
   >
-    + Create Test
+    + Create Test (Wizard)
   </button>
 
   <!-- Список тестов -->
   <ul class="list-group">
     <li class="list-group-item" *ngFor="let t of tests">
       <div class="d-flex justify-content-between">
-        <!-- Левая часть: описание теста -->
+        <!-- Левая часть -->
         <div>
           <h5>{{ t.name }}</h5>
           <p>
@@ -29,9 +29,9 @@
           </p>
         </div>
 
-        <!-- Правая часть: кнопки действий -->
+        <!-- Правая часть: кнопки -->
         <div class="d-flex flex-column gap-2">
-          <!-- Edit (Admin) -->
+          <!-- Edit -->
           <button
             class="btn btn-sm btn-secondary"
             (click)="openEditModal(t)"
@@ -40,7 +40,7 @@
             Edit
           </button>
 
-          <!-- Manage Questions (Admin only, isRandom=false) -->
+          <!-- Manage Questions (Admin, isRandom=false) -->
           <button
             class="btn btn-sm btn-info"
             *ngIf="authService.isLoggedIn() && authService.isAdmin() && t.isRandom === false"
@@ -49,7 +49,7 @@
             Manage Q
           </button>
 
-          <!-- Delete (Admin) -->
+          <!-- Delete -->
           <button
             class="btn btn-sm btn-danger"
             (click)="deleteTest(t)"
@@ -58,7 +58,7 @@
             Delete
           </button>
 
-          <!-- Start (User) -->
+          <!-- Start Test (User) -->
           <button
             class="btn btn-sm btn-success"
             (click)="onStartTest(t)"
@@ -67,7 +67,7 @@
             Start
           </button>
 
-          <!-- Show Analytics (Admin only) -->
+          <!-- Analytics -->
           <button
             class="btn btn-sm btn-primary"
             *ngIf="authService.isAdmin()"
@@ -78,9 +78,8 @@
         </div>
       </div>
 
-      <!-- Блок, где отображаем аналитику, если shownAnalytics[t.id] = true -->
+      <!-- Блок аналитики -->
       <div *ngIf="shownAnalytics[t.id]" class="p-2 mt-2 border">
-        <!-- Здесь рендерим компонент аналитики, передаём testId -->
         <app-test-analytics [testId]="t.id"></app-test-analytics>
       </div>
     </li>
@@ -111,7 +110,7 @@
   </div>
 </div>
 
-<!-- Модальное окно: Create/Edit Test -->
+<!-- Modal: Edit Test -->
 <div
   class="modal fade"
   id="testModal"
@@ -123,15 +122,13 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <h5 class="modal-title" id="testModalLabel">
-          {{ isNew ? 'Create Test' : 'Edit Test' }}
-        </h5>
+        <h5 class="modal-title" id="testModalLabel">Edit Test</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
         <form>
-          <!-- Test Name -->
+          <!-- Name -->
           <div class="mb-3">
             <label class="form-label">Test Name</label>
             <input
@@ -142,7 +139,7 @@
             />
           </div>
 
-          <!-- Count Of Questions -->
+          <!-- CountOfQuestions -->
           <div class="mb-3">
             <label class="form-label">Count Of Questions</label>
             <input
@@ -156,62 +153,52 @@
 
           <!-- Topic -->
           <div class="mb-3">
-            <label class="form-label">Topic</label>
-            <select
-              class="form-select"
-              [(ngModel)]="currentTest.topicId"
-              name="topicId"
-            >
+            <label>Topic</label>
+            <select class="form-select"
+                    [(ngModel)]="currentTest.topicId"
+                    name="topicId">
               <option [value]="undefined">-- No Topic --</option>
-              <option
-                *ngFor="let tp of topics"
-                [value]="tp.id"
-              >
+              <option *ngFor="let tp of topics" [value]="tp.id">
                 {{ tp.name }}
               </option>
             </select>
           </div>
 
-          <!-- Is Private? -->
+          <!-- IsPrivate -->
           <div class="mb-3 form-check">
             <input
               type="checkbox"
               class="form-check-input"
-              id="chkIsPrivate"
+              id="chkEditIsPrivate"
               [(ngModel)]="currentTest.isPrivate"
-              name="isPrivate"
+              name="editIsPrivate"
             />
-            <label class="form-check-label" for="chkIsPrivate">
+            <label class="form-check-label" for="chkEditIsPrivate">
               Is Private?
             </label>
           </div>
 
-          <!-- Is Random? -->
+          <!-- IsRandom -->
           <div class="mb-3 form-check">
             <input
               type="checkbox"
               class="form-check-input"
-              id="chkIsRandom"
+              id="chkEditIsRandom"
               [(ngModel)]="currentTest.isRandom"
-              name="isRandom"
+              name="editIsRandom"
             />
-            <label class="form-check-label" for="chkIsRandom">
+            <label class="form-check-label" for="chkEditIsRandom">
               Is Random?
             </label>
           </div>
 
           <!-- TestType -->
           <div class="mb-3">
-            <label class="form-label">Test Type</label>
-            <select
-              class="form-select"
-              [(ngModel)]="currentTest.testType"
-              name="testType"
-            >
-              <option
-                *ngFor="let tt of testTypes"
-                [ngValue]="tt.value"
-              >
+            <label>Test Type</label>
+            <select class="form-select"
+                    [(ngModel)]="currentTest.testType"
+                    name="editTestType">
+              <option *ngFor="let tt of testTypes" [ngValue]="tt.value">
                 {{ tt.label }}
               </option>
             </select>
@@ -219,22 +206,20 @@
 
           <!-- TimeLimitMinutes -->
           <div class="mb-3">
-            <label class="form-label">Time Limit (minutes)</label>
+            <label>Time Limit (minutes)</label>
             <input
               type="number"
               class="form-control"
               [(ngModel)]="currentTest.timeLimitMinutes"
-              name="timeLimitMinutes"
+              name="editTimeLimitMinutes"
               min="0"
             />
-            <small class="text-muted">
-              Leave empty or 0 if no time limit
-            </small>
+            <small class="text-muted">0 или пусто, если без лимита</small>
           </div>
 
-          <!-- Manage Access (только если редактирование и private) -->
+          <!-- Manage Access -->
           <div
-            *ngIf="!isNew && currentTest.isPrivate"
+            *ngIf="currentTest.id && currentTest.isPrivate"
             class="mt-2"
           >
             <button
@@ -245,32 +230,27 @@
               Manage Access
             </button>
           </div>
-
         </form>
-      </div><!-- modal-body -->
+      </div><!-- /modal-body -->
 
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
           Close
         </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="saveTest()"
-        >
+        <button type="button"
+                class="btn btn-primary"
+                (click)="saveTest()">
           Save
         </button>
       </div>
 
-    </div><!-- modal-content -->
-  </div><!-- modal-dialog -->
-</div><!-- #testModal -->
+    </div>
+  </div>
+</div>
 
-<!-- Модалка Manage Access -->
+<!-- Modal: Access -->
 <div
   class="modal fade"
   id="accessModal"
@@ -278,10 +258,69 @@
   aria-labelledby="accessModalLabel"
   aria-hidden="true"
 >
-  <!-- ... как в исходном коде, без изменений ... -->
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Manage Access for: {{ currentTest.name }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Search -->
+        <div class="mb-3">
+          <label>Search users (by name / email)</label>
+          <input type="text"
+                 class="form-control"
+                 placeholder="Enter name or email..."
+                 [(ngModel)]="searchText"
+                 (input)="onSearchUsers()">
+        </div>
+
+        <!-- Results -->
+        <ul class="list-group mb-3" *ngIf="searchResults.length > 0">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+              *ngFor="let user of searchResults">
+            <span>{{ user.fullName }} ({{ user.email }})</span>
+            <!-- Важно: user.id -->
+            <button class="btn btn-sm btn-primary"
+                    (click)="addAccess(user.id)">
+              +Add Access
+            </button>
+          </li>
+        </ul>
+
+        <hr>
+
+        <!-- Current Access -->
+        <h6>Current Access:</h6>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+              *ngFor="let au of currentAccessUsers">
+            <span>{{ au.fullName }} ({{ au.email }})</span>
+            <!-- au.userId -->
+            <button class="btn btn-sm btn-danger"
+                    (click)="removeAccess(au.userId)">
+              Remove
+            </button>
+          </li>
+        </ul>
+      </div><!-- /modal-body -->
+
+      <div class="modal-footer">
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-<!-- Модалка Manage Questions -->
+<!-- Modal: Manage Questions -->
 <div
   class="modal fade"
   id="manageQuestionsModal"
@@ -293,23 +332,19 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <h5 class="modal-title" id="manageQuestionsLabel">
+        <h5 class="modal-title">
           Manage Questions for Test: {{ currentTest.name }}
         </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          (click)="closeManageQuestionsModal()"
-        ></button>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                (click)="closeManageQuestionsModal()"></button>
       </div>
 
       <div class="modal-body">
-        <!-- Кнопка создать новый вопрос -->
-        <button
-          class="btn btn-sm btn-outline-primary mb-2"
-          (click)="openCreateQuestionModal()"
-        >
+        <!-- +Create Question -->
+        <button class="btn btn-sm btn-outline-primary mb-2"
+                (click)="openCreateQuestionModal()">
           + Create Question
         </button>
 
@@ -317,15 +352,11 @@
           <div class="col-md-6">
             <h6>Candidate Questions</h6>
             <ul class="list-group" style="max-height: 300px; overflow:auto;">
-              <li
-                class="list-group-item d-flex justify-content-between align-items-center"
-                *ngFor="let cq of candidateQuestions"
-              >
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  *ngFor="let cq of candidateQuestions">
                 <span>{{ cq.text }} ({{ cq.questionType }})</span>
-                <button
-                  class="btn btn-sm btn-success"
-                  (click)="addQuestionToTest(cq.id)"
-                >
+                <button class="btn btn-sm btn-success"
+                        (click)="addQuestionToTest(cq.id)">
                   +Add
                 </button>
               </li>
@@ -335,40 +366,33 @@
           <div class="col-md-6">
             <h6>Test Questions</h6>
             <ul class="list-group" style="max-height: 300px; overflow:auto;">
-              <li
-                class="list-group-item d-flex justify-content-between align-items-center"
-                *ngFor="let tq of testQuestions"
-              >
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  *ngFor="let tq of testQuestions">
                 <span>{{ tq.text }} ({{ tq.questionType }})</span>
-                <button
-                  class="btn btn-sm btn-danger"
-                  (click)="removeQuestionFromTest(tq.id)"
-                >
+                <button class="btn btn-sm btn-danger"
+                        (click)="removeQuestionFromTest(tq.id)">
                   Remove
                 </button>
               </li>
             </ul>
           </div>
         </div>
-
-      </div><!-- modal-body -->
+      </div><!-- /modal-body -->
 
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-          (click)="closeManageQuestionsModal()"
-        >
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+                (click)="closeManageQuestionsModal()">
           Close
         </button>
       </div>
 
-    </div><!-- modal-content -->
-  </div><!-- modal-dialog -->
-</div><!-- #manageQuestionsModal -->
+    </div>
+  </div>
+</div>
 
-<!-- Модалка CreateQuestion (внутри Manage Questions) -->
+<!-- Modal: CreateQuestion -->
 <div
   class="modal fade"
   id="createQuestionModal"
@@ -380,33 +404,31 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <h5 class="modal-title" id="createQuestionModalLabel">
+        <h5 class="modal-title">
           Create a new Question
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
         <form>
           <!-- Question Text -->
           <div class="mb-3">
-            <label class="form-label">Question Text</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="newQuestion.text"
-              name="newQuestionText"
-            />
+            <label>Question Text</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="newQuestion.text"
+                   name="newQuestionText">
           </div>
 
           <!-- QuestionType -->
           <div class="mb-3">
-            <label class="form-label">Question Type</label>
-            <select
-              class="form-select"
-              [(ngModel)]="newQuestion.questionType"
-              name="newQuestionType"
-            >
+            <label>Question Type</label>
+            <select class="form-select"
+                    [(ngModel)]="newQuestion.questionType"
+                    name="newQuestionType">
               <option *ngFor="let qt of questionTypes" [ngValue]="qt.value">
                 {{ qt.label }}
               </option>
@@ -415,76 +437,240 @@
 
           <!-- correctTextAnswer => if OpenText -->
           <div class="mb-3" *ngIf="newQuestion.questionType === 3">
-            <!-- 3 = QuestionTypeEnum.OpenText -->
-            <label class="form-label">Correct Text Answer</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="newQuestion.correctTextAnswer"
-              name="newQuestionCorrectTextAnswer"
-            />
+            <label>Correct Text Answer</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="newQuestion.correctTextAnswer"
+                   name="newQuestionCorrectTextAnswer">
           </div>
 
-          <!-- AnswerOptions => if NOT OpenText -->
+          <!-- AnswerOptions => if not OpenText -->
           <div class="mb-3" *ngIf="newQuestion.questionType !== 3">
-            <label class="form-label">Answer Options</label>
-            <div
-              class="row g-2 mb-2"
-              *ngFor="let ans of newQuestion.answerOptions; let i = index"
-            >
+            <label>Answer Options</label>
+            <div class="row g-2 mb-2"
+                 *ngFor="let ans of newQuestion.answerOptions; let i = index">
               <div class="col-8">
-                <input
-                  type="text"
-                  class="form-control"
-                  [(ngModel)]="ans.text"
-                  name="newAnsText{{ i }}"
-                />
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="ans.text"
+                       name="answerText{{i}}">
               </div>
-              <div
-                class="col-4 d-flex align-items-center"
-                *ngIf="newQuestion.questionType !== 2"
-              >
-                <input
-                  type="checkbox"
-                  class="form-check-input me-1"
-                  [(ngModel)]="ans.isCorrect"
-                  name="newAnsIsCorrect{{ i }}"
-                />
+              <div class="col-4 d-flex align-items-center"
+                   *ngIf="newQuestion.questionType !== 2">
+                <input type="checkbox"
+                       class="form-check-input me-1"
+                       [(ngModel)]="ans.isCorrect"
+                       name="answerIsCorrect{{i}}">
                 <label class="form-check-label">
                   IsCorrect?
                 </label>
               </div>
             </div>
 
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              (click)="addOptionToNewQuestion()"
-            >
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="addOptionToNewQuestion()">
               +Add Option
             </button>
           </div>
-
         </form>
-      </div><!-- modal-body -->
+      </div><!-- /modal-body -->
 
       <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
           Close
         </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="saveNewQuestion()"
-        >
+        <button type="button"
+                class="btn btn-primary"
+                (click)="saveNewQuestion()">
           Save
         </button>
       </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- modal-content -->
-  </div><!-- modal-dialog -->
-</div><!-- #createQuestionModal -->
+<!-- =============== WIZARD MODAL ============== -->
+<div
+  class="modal fade"
+  id="wizardModal"
+  tabindex="-1"
+  aria-labelledby="wizardModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Create Test (Wizard)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Шаг 1 (Category) -->
+        <div *ngIf="wizardStep === 1">
+          <h5>Step 1: Select or Create Category</h5>
+
+          <label>Select Category:</label>
+          <select class="form-select"
+                  [(ngModel)]="selectedCategoryId"
+                  name="selectedCategoryId">
+            <option [value]="null">-- choose category --</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+
+          <div class="mt-3">
+            <button class="btn btn-outline-secondary"
+                    (click)="toggleNewCategoryForm()">
+              {{ showNewCategoryForm ? 'Cancel' : '+ Create Category' }}
+            </button>
+          </div>
+
+          <div class="mt-2" *ngIf="showNewCategoryForm">
+            <label>New Category Name:</label>
+            <input type="text"
+                   class="form-control mb-2"
+                   [(ngModel)]="newCategoryName"
+                   name="newCategoryName">
+            <button class="btn btn-sm btn-info"
+                    (click)="saveNewCategory()">
+              Save Category
+            </button>
+          </div>
+        </div>
+
+        <!-- Шаг 2 (Topic) -->
+        <div *ngIf="wizardStep === 2">
+          <h5>Step 2: Select or Create Topic</h5>
+          <p class="text-muted">Category ID = {{ selectedCategoryId }}</p>
+
+          <label>Select Topic:</label>
+          <select class="form-select"
+                  [(ngModel)]="selectedTopicId"
+                  name="selectedTopicId">
+            <option [value]="null">-- choose topic --</option>
+            <option *ngFor="let tp of wizardTopics" [value]="tp.id">
+              {{ tp.name }}
+            </option>
+          </select>
+
+          <div class="mt-3">
+            <button class="btn btn-outline-secondary"
+                    (click)="toggleNewTopicForm()">
+              {{ showNewTopicForm ? 'Cancel' : '+ Create Topic' }}
+            </button>
+          </div>
+
+          <div class="mt-2" *ngIf="showNewTopicForm">
+            <label>New Topic Name:</label>
+            <input type="text"
+                   class="form-control mb-2"
+                   [(ngModel)]="newTopicName"
+                   name="newTopicName">
+            <button class="btn btn-sm btn-info"
+                    (click)="saveNewTopic()">
+              Save Topic
+            </button>
+          </div>
+        </div>
+
+        <!-- Шаг 3 (Test Info) -->
+        <div *ngIf="wizardStep === 3">
+          <h5>Step 3: Test Info</h5>
+          <p class="text-muted">Topic ID = {{ selectedTopicId }}</p>
+
+          <div class="mb-3">
+            <label>Test Name</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="wizardTestName"
+                   name="wizardTestName">
+          </div>
+          <div class="mb-3">
+            <label>Count Of Questions</label>
+            <input type="number"
+                   class="form-control"
+                   [(ngModel)]="wizardCountOfQuestions"
+                   name="wizardCountOfQuestions"
+                   min="1">
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox"
+                   class="form-check-input"
+                   id="chkWizIsPrivate"
+                   [(ngModel)]="wizardIsPrivate"
+                   name="wizardIsPrivate">
+            <label class="form-check-label" for="chkWizIsPrivate">
+              Is Private?
+            </label>
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox"
+                   class="form-check-input"
+                   id="chkWizIsRandom"
+                   [(ngModel)]="wizardIsRandom"
+                   name="wizardIsRandom">
+            <label class="form-check-label" for="chkWizIsRandom">
+              Is Random?
+            </label>
+          </div>
+          <div class="mb-3">
+            <label>Test Type</label>
+            <select class="form-select"
+                    [(ngModel)]="wizardTestType"
+                    name="wizardTestType">
+              <option *ngFor="let tt of testTypes" [ngValue]="tt.value">
+                {{ tt.label }}
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label>Time Limit (minutes)</label>
+            <input type="number"
+                   class="form-control"
+                   [(ngModel)]="wizardTimeLimitMinutes"
+                   name="wizardTimeLimitMinutes"
+                   min="0">
+            <small class="text-muted">
+              Leave empty or 0 if no time limit
+            </small>
+          </div>
+        </div>
+      </div><!-- /modal-body -->
+
+      <div class="modal-footer">
+        <button type="button"
+                class="btn btn-secondary"
+                *ngIf="wizardStep > 1"
+                (click)="wizardStep = wizardStep - 1">
+          Back
+        </button>
+
+        <button type="button"
+                class="btn btn-primary"
+                *ngIf="wizardStep === 1"
+                (click)="goToStep2()">
+          Next
+        </button>
+
+        <button type="button"
+                class="btn btn-primary"
+                *ngIf="wizardStep === 2"
+                (click)="goToStep3()">
+          Next
+        </button>
+
+        <button type="button"
+                class="btn btn-success"
+                *ngIf="wizardStep === 3"
+                (click)="saveWizardTest()">
+          Finish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

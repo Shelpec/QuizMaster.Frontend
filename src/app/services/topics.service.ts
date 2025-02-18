@@ -30,4 +30,9 @@ export class TopicsService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+  getByCategoryId(categoryId: number): Observable<TopicDto[]> {
+    return this.http.get<TopicDto[]>(`${this.baseUrl}/by-category/${categoryId}`);
+  }
+  
 }

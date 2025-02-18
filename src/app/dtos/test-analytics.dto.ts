@@ -8,6 +8,8 @@ export interface DifficultQuestionDto {
   
   // В ответе analytics + history
   export interface TestAnalyticsWithHistoryDto {
+    averageScore: number;
+    successfulAttempts: number;
     testId: number;
     testName: string;
     averageScorePercent: number;

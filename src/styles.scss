@@ -139,3 +139,11 @@ body {
 .modal-backdrop {
   background-color: var(--modal-backdrop);
 }
+.logo {
+  background-image: url('/assets/logo.png');  /* Добавлен / перед assets */
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 150px;
+  height: 50px;
+  display: block;
+}

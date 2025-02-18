@@ -14,4 +14,24 @@
     border-radius: 2px;
     margin-left: 2px;
   }
+  .analytics-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .analytics-text {
+    font-size: 18px;
+    font-weight: 100px;
+    margin-right: 20px;
+  }
+  
+  .chart-container {
+    width: 500px; // Увеличен размер диаграммы
+    height: 100px;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+  }
   

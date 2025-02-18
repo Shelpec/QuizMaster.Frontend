@@ -70,6 +70,10 @@ export class StartTestComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Здесь мы вызываем наш бекенд, который вернет UserTestDto.
+   * Если тест isRandom = true, то на бекенде сгенерируются случайные вопросы именно сейчас.
+   */
   startTest(testId: number) {
     this.userTestsService.startTest(testId).subscribe({
       next: (data) => {
@@ -83,12 +87,15 @@ export class StartTestComponent implements OnInit, OnDestroy {
           }
         });
 
-        // Если у нас есть поле expireTime => запускаем таймер
+        // Запускаем таймер, если есть лимит времени
         if (data.expireTime) {
           this.initTimer(data.expireTime);
         }
       },
-      error: (err) => console.error('Error startTest:', err)
+      error: (err) => {
+        console.error('Ошибка при старте теста', err);
+        alert('Ошибка при старте теста: ' + err.error);
+      }
     });
   }
 
@@ -130,7 +137,7 @@ export class StartTestComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Обработка выбора ответа
+   * Обработка выбора ответа (radio/checkbox)
    */
   onSelectAnswer(utqId: number, optionId: number, event: Event, isMultiple: boolean): void {
     // Если время истекло, запрещаем выбирать
@@ -154,8 +161,8 @@ export class StartTestComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Завершение: сохраняем и проверяем (кроме Survey).
-   * Скрываем модалку после проверки.
+   * Завершение теста => сохраняем ответы => если не Survey, то проверяем
+   * Скрываем модалку timeIsUp после сохранения.
    */
   onFinish() {
     if (!this.userTest) return;
@@ -165,33 +172,30 @@ export class StartTestComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
     }
 
-    // Сохраняем ответы
+    // Сохраняем ответы на сервере
     this.saveAnswers(() => {
-      // Если это опрос (Survey) — не проверяем на правильность
+      // Если тест "Survey" => не проверяем правильность
       if (this.userTest?.isSurveyTopic) {
         this.surveySaved = true;
-        // Спрячем модалку
-        this.timeIsUp = false;
-      } 
-      else {
-        // Иначе запускаем проверку. После неё скрываем модалку
+        this.timeIsUp = false; // прячем модалку
+      } else {
+        // Иначе — запрашиваем проверку
         this.checkAnswers(() => {
-          this.timeIsUp = false;
+          this.timeIsUp = false; // прячем модалку
         });
       }
     });
   }
 
   /**
-   * Запрос на сохранение ответов
+   * POST /saveAnswers
    */
   private saveAnswers(onSuccess?: () => void) {
     if (!this.userTest) return;
-
     const userTestId = this.userTest.id;
+
     const answers: UserAnswerSubmitDto[] = [];
 
-    // Собираем ответы
     for (const utq of this.userTest.userTestQuestions) {
       if (utq.questionType === QuestionTypeEnum.OpenText) {
         // open text
@@ -211,7 +215,6 @@ export class StartTestComponent implements OnInit, OnDestroy {
       }
     }
 
-    // POST /api/UserTestAnswers/{userTestId}/save
     this.userTestAnswersService.saveAnswers(userTestId, answers).subscribe({
       next: () => {
         if (onSuccess) onSuccess();
@@ -221,13 +224,12 @@ export class StartTestComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Проверяем на сервере, с опциональным колбэком
+   * GET /checkAnswers
    */
   private checkAnswers(afterCheckCallback?: () => void) {
     if (!this.userTest) return;
 
     const userTestId = this.userTest.id;
-    // GET /api/UserTestAnswers/{userTestId}/check
     this.userTestAnswersService.checkAnswers(userTestId).subscribe({
       next: (res) => {
         this.checkResult = res;
@@ -242,7 +244,6 @@ export class StartTestComponent implements OnInit, OnDestroy {
           };
         });
 
-        // Выполним колбэк
         if (afterCheckCallback) {
           afterCheckCallback();
         }
@@ -252,32 +253,31 @@ export class StartTestComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Подсветка радиокнопок/чекбоксов (после проверки)
+   * Подсветка (radio/checkbox) после проверки
    */
   getAnswerClass(utqId: number, optionId: number): string {
     const isChosen = this.selectedAnswersMap[utqId]?.has(optionId);
     if (!isChosen) return '';
 
-    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
-    if (!utq) return '';
-
-    // Если Survey/OpenText => всё зелёное (после сохранения/проверки)
-    if (utq.questionType === QuestionTypeEnum.Survey
-     || utq.questionType === QuestionTypeEnum.OpenText) {
-      if (this.surveySaved || this.checkResult) {
-        return 'selected-correct';
-      }
+    if (!this.checkResult) {
+      // Не проверяли ещё => без подсветки
       return '';
     }
 
-    // Если проверка не выполнялась — не подсвечиваем
-    if (!this.checkResult) return '';
+    // Найти вопрос
+    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
+    if (!utq) return '';
 
-    // Достаём результат для этого вопроса
+    // Survey/OpenText => пусть всё будет зелёным
+    if (utq.questionType === QuestionTypeEnum.Survey
+     || utq.questionType === QuestionTypeEnum.OpenText) {
+      return 'selected-correct';
+    }
+
+    // Проверка, был ли ответ правильным
     const checkData = this.checkAnswerMap[utq.questionId];
     if (!checkData) return '';
 
-    // Смотрим, есть ли текст ответа среди правильных
     const ansDto = utq.answerOptions.find(a => a.id === optionId);
     if (!ansDto) return '';
 
@@ -286,23 +286,24 @@ export class StartTestComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Подсветка для текстовых ответов (OpenText)
+   * Подсветка для текстовых ответов
    */
   getOpenTextClass(utqId: number): string {
-    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
-    if (!utq) return '';
-
-    if (utq.questionType === QuestionTypeEnum.Survey
-     || utq.questionType === QuestionTypeEnum.OpenText) {
-      if (this.surveySaved || this.checkResult) {
-        return 'selected-correct-textbox';
-      }
+    if (!this.checkResult) {
+      // Не проверяли => без подсветки
       return '';
     }
 
-    // Если обычный вопрос, смотрим checkResult
-    if (!this.checkResult) return '';
+    const utq = this.userTest?.userTestQuestions.find(q => q.id === utqId);
+    if (!utq) return '';
 
+    // Survey/OpenText => всё зелёное
+    if (utq.questionType === QuestionTypeEnum.Survey
+     || utq.questionType === QuestionTypeEnum.OpenText) {
+      return 'selected-correct-textbox';
+    }
+
+    // Иначе смотрим реальный результат
     const checkData = this.checkAnswerMap[utq.questionId];
     if (!checkData) return '';
 
