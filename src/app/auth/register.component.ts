@@ -36,7 +36,8 @@ export class RegisterComponent {
 
     this.authService.register(dto).subscribe({
       next: () => {
-        this.message = 'Registration successful!';
+        // После успеха регистрации - тоже отправляем на Home
+        this.router.navigate(['/']);
       },
       error: (err) => {
         console.error(err);

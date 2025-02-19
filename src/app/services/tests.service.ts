@@ -6,10 +6,24 @@ import { PaginatedResponse } from '../dtos/paginated-response';
 import { TestDto, TestTypeEnum } from '../dtos/test.dto';
 import { Question } from '../dtos/question.dto';
 
+// 1) Create an interface for analytics data (example)
+export interface TestAnalytics {
+  distribution: Array<{ rangeLabel: string; count: number }>;
+  hardest: Array<{ questionText: string; correctPercentage: number; attemptsCount: number }>;
+  topPlayers: Array<{ userFullName: string; scorePercent: number; timeSpentFormatted: string }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class TestsService {
+  startTest(id: number) {
+    throw new Error('Method not implemented.');
+  }
+  // Add a method to get analytics for a test (example)
+  getTestAnalytics(testId: number): Observable<TestAnalytics> {
+    return this.http.get<TestAnalytics>(`${this.baseUrl}/${testId}/analytics`);
+  }
   private baseUrl = 'https://localhost:44336/api/tests';
 
   constructor(private http: HttpClient) {}
@@ -124,6 +138,15 @@ export class TestsService {
     // GET /api/tests/{testId}/candidate-questions
     return this.http.get<Question[]>(`${this.baseUrl}/${testId}/candidate-questions`);
   }
+  
+
+  downloadReportPdf(testId: number): Observable<Blob> {
+    // Здесь responseType: 'blob' сообщает Angular, что мы хотим получить бинарные данные (PDF)
+    return this.http.get(`${this.baseUrl}/${testId}/report/pdf`, {
+      responseType: 'blob'
+    });
+  }
+  
 
 }
 export type { TestDto };

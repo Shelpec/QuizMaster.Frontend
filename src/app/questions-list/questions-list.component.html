@@ -1,353 +1,362 @@
-<div class="container mt-4">
+<!-- src/app/questions-list/questions-list.component.html -->
 
-  <!-- Кнопки Go to Tests / History -->
-  <div class="d-flex justify-content-center gap-3 mb-3" *ngIf="true">
-    <button class="btn btn-success" (click)="goToTests()">Go to Tests</button>
-    <button class="btn btn-warning" (click)="goToHistory()">History User Tests</button>
-  </div>
+<div class="questions-gradient py-4 mb-4">
+  <div class="container">
 
-  <div class="p-3 border rounded">
-    <h2 class="mb-3 text-center">Questions List</h2>
+    <!-- Заголовок + кнопки Go to Tests / History -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+      <button class="btn btn-success" (click)="goToTests()">Go to Tests</button>
+      <button class="btn btn-warning" (click)="goToHistory()">History User Tests</button>
+    </div>
 
-    <!-- Manage Categories -->
-    <button class="btn btn-outline-secondary mb-2 me-2" (click)="openCategoriesModal()">
-      Manage Categories
-    </button>
+    <!-- Основной блок для списка вопросов -->
+    <div class="questions-panel p-3" data-aos="fade-up">
+      <h2 class="mb-3 text-center">Questions List</h2>
 
-    <!-- Manage Topics (Admin only) -->
-    <button class="btn btn-outline-info mb-2"
-            *ngIf="true"
-            (click)="openTopicsModal()">
-      Manage Topics
-    </button>
-
-    <!-- Поиск по ID -->
-    <div class="row mb-3" *ngIf="true">
-      <div class="col-auto">
-        <input type="number"
-               class="form-control"
-               [(ngModel)]="searchId"
-               placeholder="Enter Question ID">
+      <!-- Manage Categories / Topics -->
+      <div class="mb-3">
+        <button class="btn btn-outline-secondary me-2" (click)="openCategoriesModal()">
+          Manage Categories
+        </button>
+        <button class="btn btn-outline-info" (click)="openTopicsModal()">
+          Manage Topics
+        </button>
       </div>
-      <div class="col-auto">
-        <button class="btn btn-primary" (click)="goToQuestion()">
-          Search by ID
+
+      <!-- Поиск по ID -->
+      <div class="row mb-3 align-items-center">
+        <div class="col-auto">
+          <input type="number"
+                 class="form-control"
+                 [(ngModel)]="searchId"
+                 placeholder="Enter Question ID">
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary" (click)="goToQuestion()">
+            Search by ID
+          </button>
+        </div>
+      </div>
+
+      <!-- Create Question -->
+      <button class="btn btn-primary mb-3"
+              data-bs-toggle="modal"
+              data-bs-target="#questionModal"
+              (click)="openCreateModal()">
+        + Create Question
+      </button>
+
+      <!-- Список вопросов -->
+      <ul class="list-group">
+        <li class="list-group-item question-item"
+            *ngFor="let q of questions"
+            data-aos="fade-up"
+            data-aos-delay="100">
+          <div class="flex-grow-1">
+            <div class="fw-bold text-primary">{{ q.text }}</div>
+            <div class="small text-muted">
+              <span class="me-3">Topic: {{ q.topicName || '---' }}</span>
+              <span>Type: {{ q.questionType }}</span>
+            </div>
+
+            <!-- answerOptions -->
+            <ul class="mt-2 answers-list">
+              <li *ngFor="let ans of q.answerOptions">
+                {{ ans.text }}
+                <span class="small"
+                      *ngIf="ans.isCorrect"
+                      style="color: #07bc0c;">
+                  (Correct)
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Кнопки справа -->
+          <div class="ms-3 d-flex align-items-start">
+            <button class="btn btn-sm btn-secondary me-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#questionModal"
+                    (click)="openEditModal(q)">
+              Edit
+            </button>
+            <button class="btn btn-sm btn-danger"
+                    (click)="deleteQuestion(q)">
+              Delete
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Пагинация -->
+      <div class="mt-3 d-flex justify-content-center align-items-center">
+        <button class="btn btn-outline-light me-2"
+                (click)="prevPage()"
+                [disabled]="currentPage <= 1">
+          Prev
+        </button>
+        <span class="me-2">
+          Page {{ currentPage }} / {{ totalPages }}
+        </span>
+        <button class="btn btn-outline-light"
+                (click)="nextPage()"
+                [disabled]="currentPage >= totalPages">
+          Next
+        </button>
+      </div>
+      <div class="text-muted text-center mt-2">
+        Total Items: {{ totalItems }}
+      </div>
+    </div><!-- /questions-panel -->
+
+  </div><!-- /container -->
+</div><!-- /questions-gradient -->
+
+
+<!-- Modal (Create/Edit Question) -->
+<div class="modal fade"
+     id="questionModal"
+     tabindex="-1"
+     aria-labelledby="questionModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content questions-modal">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="questionModalLabel">
+          {{ isNew ? 'Create Question' : 'Edit Question' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+          <!-- Question Text -->
+          <div class="mb-3">
+            <label class="form-label">Question Text</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="currentQuestion.text"
+                   name="questionText">
+          </div>
+
+          <!-- Topic -->
+          <div class="mb-3">
+            <label class="form-label">Topic</label>
+            <select class="form-select"
+                    [(ngModel)]="currentQuestion.topicId"
+                    name="topicId">
+              <option *ngFor="let t of topics" [value]="t.id">{{ t.name }}</option>
+            </select>
+          </div>
+
+          <!-- QuestionType -->
+          <div class="mb-3">
+            <label class="form-label">Question Type</label>
+            <select class="form-select"
+                    [(ngModel)]="currentQuestion.questionType"
+                    name="questionType">
+              <option *ngFor="let qt of questionTypes" [ngValue]="qt.value">
+                {{ qt.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- correctTextAnswer (только если OpenText) -->
+          <div class="mb-3" *ngIf="isOpenTextType()">
+            <label class="form-label">Correct Text Answer</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="currentQuestion.correctTextAnswer"
+                   name="correctTextAnswer">
+          </div>
+
+          <!-- Блок вариантов (не показываем, если OpenText) -->
+          <div *ngIf="shouldShowAnswerOptions()">
+            <div class="mb-2 fw-bold">Answer Options:</div>
+
+            <div class="row g-2 mb-2"
+                 *ngFor="let ans of currentQuestion.answerOptions; let i = index">
+              <div class="col-8">
+                <input type="text"
+                       class="form-control"
+                       [(ngModel)]="ans.text"
+                       name="answerText{{i}}">
+              </div>
+
+              <!-- Скрываем чекбокс, если тип вопроса = Survey -->
+              <div class="col-4 d-flex align-items-center"
+                   *ngIf="currentQuestion.questionType !== questionTypeEnum.Survey">
+                <input type="checkbox"
+                       class="form-check-input me-1"
+                       [(ngModel)]="ans.isCorrect"
+                       name="answerIsCorrect{{i}}"
+                       (change)="onIsCorrectChange(i)">
+                <label class="form-check-label">IsCorrect?</label>
+              </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="addAnswerOption()">
+              + Add Option
+            </button>
+          </div>
+
+        </form>
+      </div><!-- /modal-body -->
+
+      <div class="modal-footer">
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+          Close
+        </button>
+        <button type="button"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                (click)="saveQuestion()">
+          Save
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Topics Modal -->
+<div class="modal"
+     tabindex="-1"
+     [class.show]="showTopicsModal"
+     [style.display]="showTopicsModal ? 'block':''"
+     [attr.aria-hidden]="!showTopicsModal">
+  <div class="modal-dialog">
+    <div class="modal-content questions-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Manage Topics</h5>
+        <button type="button" class="btn-close" (click)="closeTopicsModal()"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Список тем -->
+        <ul class="list-group mb-3">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+              *ngFor="let t of topics">
+            <span>{{ t.name }} [Cat: {{ t.categoryId }}]</span>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2"
+                      (click)="editTopic(t)">
+                Edit
+              </button>
+              <button class="btn btn-sm btn-danger"
+                      (click)="deleteTopic(t)">
+                Delete
+              </button>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Форма редактирования/создания topic -->
+        <h6>{{ isTopicNew ? 'Create Topic' : 'Edit Topic' }}</h6>
+        <div class="mb-3">
+          <input type="text"
+                 class="form-control"
+                 placeholder="Topic name..."
+                 [(ngModel)]="currentTopic.name"
+                 name="topicName">
+        </div>
+
+        <div class="mb-3">
+          <label>Category:</label>
+          <select class="form-select"
+                  [(ngModel)]="currentTopic.categoryId"
+                  name="categoryId">
+            <option value="0">-- No Category --</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary"
+                (click)="saveTopic()">
+          Save Topic
+        </button>
+        <button class="btn btn-outline-secondary ms-2"
+                (click)="newTopic()">
+          + New Topic
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button"
+                class="btn btn-secondary"
+                (click)="closeTopicsModal()">
+          Close
         </button>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Create Question -->
-    <button class="btn btn-primary mb-3"
-            data-bs-toggle="modal"
-            data-bs-target="#questionModal"
-            (click)="openCreateModal()">
-      + Create Question
-    </button>
+<!-- Categories Modal -->
+<div class="modal"
+     tabindex="-1"
+     [class.show]="showCategoriesModal"
+     [style.display]="showCategoriesModal ? 'block':''"
+     [attr.aria-hidden]="!showCategoriesModal">
+  <div class="modal-dialog">
+    <div class="modal-content questions-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Manage Categories</h5>
+        <button type="button" class="btn-close" (click)="closeCategoriesModal()"></button>
+      </div>
 
-    <!-- Список вопросов -->
-    <ul class="list-group">
-      <li class="list-group-item d-flex justify-content-between align-items-start"
-          *ngFor="let q of questions">
-        <div>
-          <div class="fw-bold">{{ q.text }}</div>
-          <div class="text-muted">
-            Topic: {{ q.topicName || '---' }}<br>
-            Type: {{ q.questionType }}
-          </div>
-          <ul>
-            <li *ngFor="let ans of q.answerOptions">
-              {{ ans.text }} [Correct? {{ ans.isCorrect }}]
-            </li>
-          </ul>
+      <div class="modal-body">
+        <!-- Список категорий -->
+        <ul class="list-group mb-3">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+              *ngFor="let c of categories">
+            <span>{{ c.name }}</span>
+            <div>
+              <button class="btn btn-sm btn-secondary me-2"
+                      (click)="editCategory(c)">
+                Edit
+              </button>
+              <button class="btn btn-sm btn-danger"
+                      (click)="deleteCategory(c)">
+                Delete
+              </button>
+            </div>
+          </li>
+        </ul>
+
+        <h6>{{ isCategoryNew ? 'Create Category' : 'Edit Category' }}</h6>
+        <div class="mb-3">
+          <input type="text"
+                 class="form-control"
+                 placeholder="Category name..."
+                 [(ngModel)]="currentCategory.name"
+                 name="categoryName">
         </div>
 
-        <div class="ms-2">
-          <button class="btn btn-sm btn-secondary me-2"
-                  data-bs-toggle="modal" data-bs-target="#questionModal"
-                  (click)="openEditModal(q)">
-            Edit
-          </button>
-          <button class="btn btn-sm btn-danger"
-                  (click)="deleteQuestion(q)">
-            Delete
-          </button>
-        </div>
-      </li>
-    </ul>
+        <button class="btn btn-primary"
+                (click)="saveCategory()">
+          Save Category
+        </button>
+        <button class="btn btn-outline-secondary ms-2"
+                (click)="newCategory()">
+          + New Category
+        </button>
+      </div>
 
-    <!-- Пагинация -->
-    <div class="mt-3 d-flex justify-content-center align-items-center">
-      <button class="btn btn-outline-secondary me-2"
-              (click)="prevPage()"
-              [disabled]="currentPage <= 1">
-        Prev
-      </button>
-      <span class="me-2">
-        Page {{ currentPage }} / {{ totalPages }}
-      </span>
-      <button class="btn btn-outline-secondary"
-              (click)="nextPage()"
-              [disabled]="currentPage >= totalPages">
-        Next
-      </button>
-    </div>
-    <div class="text-muted text-center mt-2">
-      Total Items: {{ totalItems }}
-    </div>
-
-    <!-- Modal (Create/Edit Question) -->
-    <div class="modal fade"
-         id="questionModal"
-         tabindex="-1"
-         aria-labelledby="questionModalLabel"
-         aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-
-          <div class="modal-header">
-            <h5 class="modal-title" id="questionModalLabel">
-              {{ isNew ? 'Create Question' : 'Edit Question' }}
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-
-          <div class="modal-body">
-            <form>
-              <!-- Question Text -->
-              <div class="mb-3">
-                <label class="form-label">Question Text</label>
-                <input type="text"
-                       class="form-control"
-                       [(ngModel)]="currentQuestion.text"
-                       name="questionText">
-              </div>
-
-              <!-- Topic -->
-              <div class="mb-3">
-                <label class="form-label">Topic</label>
-                <select class="form-select"
-                        [(ngModel)]="currentQuestion.topicId"
-                        name="topicId">
-                  <option *ngFor="let t of topics" [value]="t.id">{{ t.name }}</option>
-                </select>
-              </div>
-
-              <!-- QuestionType -->
-              <div class="mb-3">
-                <label class="form-label">Question Type</label>
-                <select class="form-select"
-                        [(ngModel)]="currentQuestion.questionType"
-                        name="questionType">
-                  <option *ngFor="let qt of questionTypes" [ngValue]="qt.value">
-                    {{ qt.label }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- correctTextAnswer (только если OpenText) -->
-              <div class="mb-3" *ngIf="isOpenTextType()">
-                <label class="form-label">Correct Text Answer</label>
-                <input type="text"
-                       class="form-control"
-                       [(ngModel)]="currentQuestion.correctTextAnswer"
-                       name="correctTextAnswer">
-              </div>
-
-              <!-- Блок вариантов (не показываем, если OpenText) -->
-              <div *ngIf="shouldShowAnswerOptions()">
-                <div class="mb-2 fw-bold">Answer Options:</div>
-
-                <div class="row g-2 mb-2"
-                     *ngFor="let ans of currentQuestion.answerOptions; let i = index">
-                  <div class="col-8">
-                    <input type="text"
-                           class="form-control"
-                           [(ngModel)]="ans.text"
-                           name="answerText{{i}}">
-                  </div>
-
-                  <!-- Скрываем чекбокс, если тип вопроса = Survey -->
-                  <div class="col-4 d-flex align-items-center"
-                       *ngIf="currentQuestion.questionType !== questionTypeEnum.Survey">
-                    <input type="checkbox"
-                           class="form-check-input me-1"
-                           [(ngModel)]="ans.isCorrect"
-                           name="answerIsCorrect{{i}}"
-                           (change)="onIsCorrectChange(i)">
-                    <label class="form-check-label">IsCorrect?</label>
-                  </div>
-                </div>
-
-                <button type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        (click)="addAnswerOption()">
-                  + Add Option
-                </button>
-              </div>
-
-            </form>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-              Close
-            </button>
-            <button type="button"
-                    class="btn btn-primary"
-                    data-bs-dismiss="modal"
-                    (click)="saveQuestion()">
-              Save
-            </button>
-          </div>
-
-        </div>
+      <div class="modal-footer">
+        <button type="button"
+                class="btn btn-secondary"
+                (click)="closeCategoriesModal()">
+          Close
+        </button>
       </div>
     </div>
-
-    <!-- Topics Modal -->
-    <div class="modal"
-         tabindex="-1"
-         [class.show]="showTopicsModal"
-         [style.display]="showTopicsModal ? 'block':''"
-         [attr.aria-hidden]="!showTopicsModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-        
-          <div class="modal-header">
-            <h5 class="modal-title">Manage Topics</h5>
-            <button type="button" class="btn-close" (click)="closeTopicsModal()"></button>
-          </div>
-
-          <div class="modal-body">
-            <!-- Список тем -->
-            <ul class="list-group">
-              <li class="list-group-item d-flex justify-content-between align-items-center"
-                  *ngFor="let t of topics">
-                <span>{{ t.name }} [CategoryId: {{ t.categoryId }}]</span>
-                <div>
-                  <button class="btn btn-sm btn-secondary me-2"
-                          (click)="editTopic(t)">
-                    Edit
-                  </button>
-                  <button class="btn btn-sm btn-danger"
-                          (click)="deleteTopic(t)">
-                    Delete
-                  </button>
-                </div>
-              </li>
-            </ul>
-
-            <hr>
-            <!-- Форма редактирования/создания topic -->
-            <h6>{{ isTopicNew ? 'Create Topic' : 'Edit Topic' }}</h6>
-            <div class="mb-3">
-              <input type="text"
-                     class="form-control"
-                     placeholder="Topic name..."
-                     [(ngModel)]="currentTopic.name"
-                     name="topicName">
-            </div>
-
-            <div class="mb-3">
-              <label>Category:</label>
-              <select class="form-select"
-                      [(ngModel)]="currentTopic.categoryId"
-                      name="categoryId">
-                <option value="0">-- No Category --</option>
-                <option *ngFor="let cat of categories" [value]="cat.id">
-                  {{ cat.name }}
-                </option>
-              </select>
-            </div>
-
-            <button class="btn btn-primary"
-                    (click)="saveTopic()">
-              Save Topic
-            </button>
-            <button class="btn btn-outline-secondary ms-2"
-                    (click)="newTopic()">
-              + New Topic
-            </button>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button"
-                    class="btn btn-secondary"
-                    (click)="closeTopicsModal()">
-              Close
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- Categories Modal -->
-    <div class="modal"
-         tabindex="-1"
-         [class.show]="showCategoriesModal"
-         [style.display]="showCategoriesModal ? 'block':''"
-         [attr.aria-hidden]="!showCategoriesModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-
-          <div class="modal-header">
-            <h5 class="modal-title">Manage Categories</h5>
-            <button type="button" class="btn-close" (click)="closeCategoriesModal()"></button>
-          </div>
-
-          <div class="modal-body">
-            <!-- Список категорий -->
-            <ul class="list-group">
-              <li class="list-group-item d-flex justify-content-between align-items-center"
-                  *ngFor="let c of categories">
-                <span>{{ c.name }}</span>
-                <div>
-                  <button class="btn btn-sm btn-secondary me-2"
-                          (click)="editCategory(c)">
-                    Edit
-                  </button>
-                  <button class="btn btn-sm btn-danger"
-                          (click)="deleteCategory(c)">
-                    Delete
-                  </button>
-                </div>
-              </li>
-            </ul>
-
-            <hr>
-            <h6>{{ isCategoryNew ? 'Create Category' : 'Edit Category' }}</h6>
-            <div class="mb-3">
-              <input type="text"
-                     class="form-control"
-                     placeholder="Category name..."
-                     [(ngModel)]="currentCategory.name"
-                     name="categoryName">
-            </div>
-
-            <button class="btn btn-primary"
-                    (click)="saveCategory()">
-              Save Category
-            </button>
-            <button class="btn btn-outline-secondary ms-2"
-                    (click)="newCategory()">
-              + New Category
-            </button>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button"
-                    class="btn btn-secondary"
-                    (click)="closeCategoriesModal()">
-              Close
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>

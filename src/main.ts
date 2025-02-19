@@ -10,6 +10,8 @@ import { routes } from './app/app.routes';
 // Если нужен Interceptor для JWT:
 import { AuthInterceptor } from './app/interceptors/auth.interceptor'; // (если есть)
 
+
+
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(HttpClientModule),

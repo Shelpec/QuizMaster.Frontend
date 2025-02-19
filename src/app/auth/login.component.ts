@@ -31,10 +31,10 @@ export class LoginComponent {
 
     this.authService.login(dto).subscribe({
       next: (res) => {
-        // res.token
+        // Сохраняем токен
         this.authService.setToken(res.token);
-        // Переходим на /questions
-        this.router.navigate(['/questions']);
+        // Сразу отправляем пользователя на Главную
+        this.router.navigate(['/']);
       },
       error: (err) => {
         console.error(err);

@@ -1,62 +1,371 @@
-<div class="container mt-4">
-    <div class="p-5 mb-4 bg-light rounded-3">
-      <div class="container py-5">
-        <h1 class="display-5 fw-bold">Добро пожаловать в QuizMasterAPI!</h1>
-        <p class="col-md-8 fs-4">
-          Это платформа для создания и прохождения тестов. Вы можете создавать тесты,
-          добавлять вопросы, управлять темами, следить за результатами и многое другое!
+<!-- src/app/home/home.component.html -->
+
+<!-- ===================== HERO-БЛОК с ГРАДИЕНТОМ (слегка скруглённый низ) ===================== -->
+<div
+  class="container-fluid text-light py-5 mb-5"
+  style="
+    background: linear-gradient(135deg, #7cf882 0%, #ca01fc 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+    border-radius: 0 0 30px 30px;
+  "
+>
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Текстовая часть -->
+      <div class="col-md-6">
+        <h1 class="display-4 fw-bold mb-3">Добро пожаловать в QuizMasterAPI!</h1>
+        <p class="fs-5">
+          Платформа для создания и прохождения тестов. Вы можете:
+          <strong>создавать тесты</strong>,
+          добавлять вопросы, следить за результатами и многое другое!
         </p>
-  
-        <!-- Блок, если пользователь НЕ авторизован -->
+
+        <!-- Если пользователь НЕ авторизован -->
         <div *ngIf="!authService.isLoggedIn()">
-          <button class="btn btn-primary btn-lg me-3" routerLink="/login">Войти</button>
-          <button class="btn btn-outline-secondary btn-lg" routerLink="/register">
+          <button class="btn btn-outline-light btn-lg me-3" routerLink="/login">
+            Войти
+          </button>
+          <button class="btn btn-light btn-lg" routerLink="/register">
             Регистрация
           </button>
         </div>
-  
-        <!-- Блок, если пользователь авторизован (обычный User или Admin) -->
+
+        <!-- Если пользователь авторизован -->
         <div *ngIf="authService.isLoggedIn()">
-          <!-- Ссылка на список тестов -->
           <button class="btn btn-success btn-lg me-3" routerLink="/tests">
             Перейти к тестам
           </button>
-          <!-- Ссылка на историю прохождений -->
           <button class="btn btn-warning btn-lg" routerLink="/history-user-tests">
             Моя история тестов
           </button>
         </div>
       </div>
+
+      <!-- Картинка справа -->
+      <div class="col-md-6 text-center mt-4 mt-md-0">
+        <img
+          src="assets/images/quiz1.svg"
+          alt="Quiz Hero"
+          class="img-fluid"
+          style="max-height: 350px;"
+        />
+      </div>
     </div>
-  
-    <div class="row align-items-md-stretch">
-      <div class="col-md-6 mb-3">
-        <div class="h-100 p-5 text-bg-dark rounded-3">
-          <h2>Преимущества QuizMasterAPI</h2>
-          <ul>
-            <li>Удобное управление вопросами и тестами</li>
-            <li>Гибкая настройка доступа (приватные/публичные тесты)</li>
-            <li>Система аналитики и истории прохождений</li>
-          </ul>
-          <!-- Доп. ссылка на список вопросов -->
-          <button class="btn btn-outline-light mt-3" type="button" routerLink="/questions">
-            Список вопросов
-          </button>
+  </div>
+</div>
+
+<!-- ===================== Секция «Почему выбрать QuizMasterAPI?» (с небольшим скруглением) ===================== -->
+<div
+  class="container my-5"
+  style="
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    border-radius: 15px;
+  "
+>
+  <div class="row align-items-center g-5">
+    <div class="col-md-6 text-center">
+      <img
+        src="assets/images/quiz2.svg"
+        alt="Second Illustration"
+        class="img-fluid"
+        style="max-width: 320px;"
+      />
+    </div>
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-3">Почему стоит выбрать QuizMasterAPI?</h2>
+      <ul class="fs-5">
+        <li>Удобное управление вопросами и тестами</li>
+        <li>Гибкая настройка доступа (приватные / публичные тесты)</li>
+        <li>Система аналитики и истории прохождений</li>
+        <li>Возможность скачивать PDF-отчёты по тестам</li>
+      </ul>
+      <p>
+        Мы используем ASP.NET Core и Angular, чтобы создать удобный сервис
+        для эффективной оценки знаний и управления тестами. Вы сможете быстро
+        запускать и контролировать процессы обучения или аттестации.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== Секция «Как пользоваться?» с анимациями (AOS) ===================== -->
+<div
+  class="container-fluid text-light py-5"
+  style="
+    background: linear-gradient(135deg, #d986f4 0%, #9616a2 100%);
+    clip-path: polygon(0 0, 100% 10%, 100% 100%, 0 100%);
+    border-radius: 15px;
+  "
+>
+  <div class="container my-5">
+    <h2 class="fw-bold text-center mb-4" data-aos="zoom-in">Как пользоваться?</h2>
+
+    <!-- Пять шагов в одной строке (или переносятся при маленьком экране).
+         Каждый шаг - Card с анимацией при прокрутке. -->
+
+    <!-- row-cols-1 row-cols-md-2 row-cols-lg-5 => 5 колонок на широком экране -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4 justify-content-center">
+
+      <!-- Шаг 1 -->
+      <div class="col">
+        <div class="card p-3 h-100" data-aos="flip-left" style="border-radius: 15px;">
+          <div class="card-body">
+            <h5 class="fw-bold">1. Зарегистрируйтесь или войдите</h5>
+            <p class="mb-0" style="font-size: 0.95rem;">
+              Если нет учётной записи – «Регистрация».
+              Если уже есть – «Войти».
+            </p>
+          </div>
         </div>
       </div>
-      <div class="col-md-6 mb-3">
-        <div class="h-100 p-5 bg-light border rounded-3">
-          <h2>Информация о проекте</h2>
-          <p>
-            Данный сайт разработан для упрощения процесса обучения и оценки знаний.
-            Код написан на ASP.NET Core (backend) и Angular (frontend).
-          </p>
-          <p>
-            Пройдите авторизацию, чтобы получить полный доступ к функционалу:
-            создавать и редактировать тесты, просматривать результаты и др.
-          </p>
+
+      <!-- Шаг 2 -->
+      <div class="col">
+        <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="100" style="border-radius: 15px;">
+          <div class="card-body">
+            <h5 class="fw-bold">2. Создание вопросов и тестов</h5>
+            <p class="mb-0" style="font-size: 0.95rem;">
+              Перейдите в «Вопросы» или «Тесты». Нажмите «Создать»,
+              укажите тему, приватность, время и т.д.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Шаг 3 -->
+      <div class="col">
+        <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="200" style="border-radius: 15px;">
+          <div class="card-body">
+            <h5 class="fw-bold">3. Прохождение теста</h5>
+            <p class="mb-0" style="font-size: 0.95rem;">
+              На странице «Тесты» нажмите «Start», ответьте на вопросы,
+              итоговый балл появится сразу.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Шаг 4 -->
+      <div class="col">
+        <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="300" style="border-radius: 15px;">
+          <div class="card-body">
+            <h5 class="fw-bold">4. Просмотр истории</h5>
+            <p class="mb-0" style="font-size: 0.95rem;">
+              В «Моя история тестов» – все ваши прохождения:
+              дата, результат, время. Удобно для анализа.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Шаг 5 -->
+      <div class="col">
+        <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="400" style="border-radius: 15px;">
+          <div class="card-body">
+            <h5 class="fw-bold">5. PDF-отчёты</h5>
+            <p class="mb-0" style="font-size: 0.95rem;">
+              Если вы Админ, можно скачать PDF со статистикой:
+              сложные вопросы, рейтинг игроков и многое другое.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /row -->
+  </div>
+</div>
+
+<!-- ===================== Секция «Возможности QuizMasterAPI» (6 карточек) ===================== -->
+<div class="container-fluid py-5 text-light" style="background-color: #343a40; border-radius: 15px;">
+  <div class="container">
+    <h2 class="fw-bold mb-4 text-center">Возможности QuizMasterAPI</h2>
+
+    <!-- Немного CSS для flip-cards; общее -->
+    <style>
+      .flip-card {
+        background-color: transparent;
+        perspective: 1000px;
+        height: 300px;
+        overflow: hidden;
+        border-radius: 15px; /* скруглённые углы */
+      }
+      .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+      }
+      .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+      }
+      .flip-card-front,
+      .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        background-color: #fff;
+      }
+      .flip-card-front {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .flip-card-back {
+        transform: rotateY(180deg);
+        padding: 20px;
+      }
+    </style>
+
+    <div class="row g-4">
+      <!-- ======= Первая строка (3 «Flip card», с УВЕЛИЧЕННЫМИ изображениями) ======= -->
+      <!-- Изображения были ~130px, теперь в 2 раза больше => 260px -->
+      <!-- 1 -->
+      <div class="col-md-4" data-aos="fade-up">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <!-- FRONT -->
+            <div class="flip-card-front">
+              <img
+                src="assets/images/quiz3.svg"
+                alt="Quiz 3"
+                style="max-width: 260px;"
+              />
+            </div>
+            <!-- BACK -->
+            <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
+              <h5 class="fw-bold text-dark mb-2">Создание теста за пару кликов</h5>
+              <p class="text-dark text-center" style="font-size: 0.95rem;">
+                Задайте название, тему, время. Смешанный, опросник,
+                случайные вопросы — всё очень просто!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <!-- FRONT -->
+            <div class="flip-card-front">
+              <img
+                src="assets/images/quiz4.svg"
+                alt="Quiz 4"
+                style="max-width: 260px;"
+              />
+            </div>
+            <!-- BACK -->
+            <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
+              <h5 class="fw-bold text-dark mb-2">Простое добавление вопросов</h5>
+              <p class="text-dark text-center" style="font-size: 0.95rem;">
+                Создавайте варианты ответов, открытые или множественные.
+                Удаляйте, редактируйте — настраивайте под себя!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <!-- FRONT -->
+            <div class="flip-card-front">
+              <img
+                src="assets/images/quiz5.svg"
+                alt="Quiz 5"
+                style="max-width: 260px;"
+              />
+            </div>
+            <!-- BACK -->
+            <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
+              <h5 class="fw-bold text-dark mb-2">Удобный интерфейс прохождения</h5>
+              <p class="text-dark text-center" style="font-size: 0.95rem;">
+                Последовательные или все вопросы сразу,
+                итоговый результат виден мгновенно!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Отступ -->
+    <div class="my-4"></div>
+
+    <!-- ======= Вторая строка (3 обычные карточки, с УВЕЛИЧЕННЫМИ изображениями) ======= -->
+    <!-- Изображения были ~180px, теперь 360px -->
+    <div class="row g-4">
+      <!-- 4 -->
+      <div class="col-md-4" data-aos="fade-up">
+        <div class="card text-dark" style="overflow: hidden; border-radius: 15px;">
+          <div class="text-center mt-3">
+            <img
+              src="assets/images/quiz6.svg"
+              alt="Quiz 6"
+              class="card-img-top p-3"
+              style="max-width: 360px;"
+            />
+          </div>
+          <div class="card-body">
+            <h5 class="card-title fw-bold">История прохождений</h5>
+            <p class="card-text">
+              В «Моя история тестов» хранится список попыток,
+              с датой, итоговым баллом и временем. Удобно для анализа
+              и отслеживания прогресса.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card text-dark" style="overflow: hidden; border-radius: 15px;">
+          <div class="text-center mt-3">
+            <img
+              src="assets/images/quiz7.svg"
+              alt="Quiz 7"
+              class="card-img-top p-3"
+              style="max-width: 360px;"
+            />
+          </div>
+          <div class="card-body">
+            <h5 class="card-title fw-bold">PDF-аналитика</h5>
+            <p class="card-text">
+              Если вы Админ, получите PDF-отчёт: самые сложные вопросы,
+              средний балл, топ-игроки и многое другое — всё под рукой.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="card text-dark" style="overflow: hidden; border-radius: 15px;">
+          <div class="text-center mt-3">
+            <img
+              src="assets/images/quiz8.svg"
+              alt="Quiz 8"
+              class="card-img-top p-3"
+              style="max-width: 360px;"
+            />
+          </div>
+          <div class="card-body">
+            <h5 class="card-title fw-bold">Гибкое управление доступом</h5>
+            <p class="card-text">
+              Сделайте тест публичным или ограничьте пользователей.
+              Отлично подходит для учебных курсов, корпоративных тренингов
+              и аттестаций.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
+</div>

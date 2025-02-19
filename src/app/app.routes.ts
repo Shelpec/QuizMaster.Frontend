@@ -10,15 +10,24 @@ import { StartTestComponent } from './user-tests/start-test.component';
 import { UserTestsHistoryComponent } from './user-tests-history/user-tests-history.component';
 import { HomeComponent } from './home/home.component';
 
+// Подключаем наш AuthGuard
+import { AuthGuard } from './guards/auth.guard';
+
 export const routes: Routes = [
-    // Главная страница (пусть она будет на path: '')
+  // Главная страница
   { path: '', component: HomeComponent },
-  { path: 'questions', component: QuestionsListComponent },
-  { path: 'tests', component: TestListComponent },   // <-- вот
+
+  // Защищённые маршруты, только для авторизованных:
+  { path: 'questions', component: QuestionsListComponent, canActivate: [AuthGuard] },
+  { path: 'tests', component: TestListComponent, canActivate: [AuthGuard] },
+  { path: 'questions/:id', component: QuestionDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'start-test/:testId', component: StartTestComponent, canActivate: [AuthGuard] },
+  { path: 'history-user-tests', component: UserTestsHistoryComponent, canActivate: [AuthGuard] },
+
+  // Открытые маршруты:
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'questions/:id', component: QuestionDetailsComponent },
-  { path: 'start-test/:testId', component: StartTestComponent },
-  { path: 'history-user-tests', component: UserTestsHistoryComponent },
+
+  // Если что-то не найдено — переброс на главную:
   { path: '**', redirectTo: '' }
 ];

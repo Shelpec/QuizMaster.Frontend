@@ -1,12 +1,14 @@
 @use "sass:map";
 @use "sass:color";
+@import 'aos/dist/aos.css';
+
 
 // Переменные для светлой темы
 $light-theme: (
-  background-color: #e7e7e7,
+  background-color: #c3d1cb,
   text-color: #212529,
-  secondary-bg: #dbdbdb,
-  border-color: #2f2f2f,
+  secondary-bg: #d5d5d5,
+  border-color: #565656,
   primary-color: #0d6efd,
   success-color: #198754,
   danger-color: #dc3545,
@@ -23,30 +25,20 @@ $dark-theme: (
   secondary-bg: #3b3b3b,
   border-color: #495057,
   primary-color: #0a58ca,
-  success-color: #248759,
-  danger-color: #b02a37,
-  warning-color: #ca9a04,
-  info-color: #087990,
-  header-bg: #343a40,
-  modal-backdrop: rgba(255, 255, 255, 0.1)
+  header-bg: #343a40
 );
 
-// Общий миксин для применения темы
 @mixin apply-theme($theme) {
   background-color: map.get($theme, background-color);
   color: map.get($theme, text-color);
 
-  // Главный контейнер
-  .container {
-    background-color: map.get($theme, background-color);
-    color: map.get($theme, text-color);
-  }
-
-  // Карточки (Test List, Questions List, Start Test)
-  .card {
+  .card,
+  .step-card,
+  .feature-card {
     background-color: map.get($theme, secondary-bg);
     border-color: map.get($theme, border-color);
     color: map.get($theme, text-color);
+    border-radius: 15px; /* скруглим углы карточек */
   }
 
   // Элементы списка (Test List, Questions List, UserTestHistory)
@@ -54,6 +46,7 @@ $dark-theme: (
     background-color: map.get($theme, secondary-bg);
     border-color: map.get($theme, border-color);
     color: map.get($theme, text-color);
+    border-radius: 6px;
   }
 
   // Фон и текст модального окна
@@ -75,6 +68,7 @@ $dark-theme: (
     background-color: map.get($theme, secondary-bg);
     border-color: map.get($theme, border-color);
     color: map.get($theme, text-color);
+    border-radius: 6px;
   }
 
   // Подсветка активного инпута
@@ -130,20 +124,112 @@ $dark-theme: (
   @include apply-theme($dark-theme);
 }
 
-// Основные стили
-body {
-  transition: background-color 0.3s, color 0.3s;
-  min-height: 100vh;
+/* --------- Общие стили --------- */
+
+/* Hero-блок */
+.hero-section {
+  position: relative;
+  border-radius: 0 0 50px 50px; /* Скруглим нижние углы */
+  overflow: hidden;
+
+  /* Градиент и clip-path перенесли в html inline style
+     если хотите, можно вынести сюда */
+  .main-hero-image {
+    max-height: 350px;
+    border-radius: 20px;
+}
 }
 
-.modal-backdrop {
-  background-color: var(--modal-backdrop);
-}
-.logo {
-  background-image: url('/assets/logo.png');  /* Добавлен / перед assets */
-  background-size: contain;
-  background-repeat: no-repeat;
+/* «Пузырьковая» секция (пример) */
+.bubble-section {
+  position: relative;
+  padding: 40px;
+  border-radius: 30px;
+  background-color: #ffffff; /* по умолчанию */
+  overflow: hidden;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    background: rgba(180, 220, 255, 0.4);
+    border-radius: 50%;
+    z-index: -1;
+  }
+
+  /* Один большой пузырь слева сверху */
+  &::before {
   width: 150px;
-  height: 50px;
-  display: block;
+    height: 150px;
+    top: -60px;
+    left: -60px;
+  }
+
+  /* Другой пузырь справа снизу */
+  &::after {
+    width: 200px;
+    height: 200px;
+    bottom: -80px;
+    right: -80px;
+  }
+}
+
+/* «Пузырьковая» градиентная секция */
+.bubble-gradient {
+  position: relative;
+  clip-path: polygon(0 0, 100% 10%, 100% 100%, 0 100%);
+  border-radius: 0 0 70px 70px;
+  overflow: hidden;
+}
+
+/* Flip-cards */
+.flip-card {
+  border-radius: 15px;
+}
+.flip-card-front,
+.flip-card-back {
+  border-radius: 15px;
+}
+
+/* Секция «Возможности QuizMasterAPI» */
+.features-section {
+  position: relative;
+  background-color: #343a40; /* по умолчанию тёмная */
+  border-top-left-radius: 70px; /* скруглим верхний угол */
+  border-top-right-radius: 70px;
+}
+
+/* Анимации */
+.step-card,
+.feature-card {
+  border-radius: 15px;
+}
+
+/* Пример: hover-анимация для карточек шагов */
+.step-card:hover {
+  transform: translateY(-3px);
+  transition: transform 0.3s;
+}
+.feature-card:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s;
+}
+
+/* Небольшие медиазапросы при очень узких экранах */
+@media (max-width: 576px) {
+  .bubble-section {
+    padding: 20px;
+  }
+  .bubble-section::before {
+    width: 100px;
+    height: 100px;
+    top: -50px;
+    left: -50px;
+  }
+  .bubble-section::after {
+    width: 120px;
+    height: 120px;
+    bottom: -60px;
+    right: -60px;
+  }
 }

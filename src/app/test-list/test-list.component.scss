@@ -1,0 +1,74 @@
+@import 'aos/dist/aos.css';
+
+/* Градиентный фон, как hero */
+.tests-gradient {
+  background: linear-gradient(135deg, #4AC29A 0%, #BDFFF3 100%);
+  //clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+  position: relative;
+  border-radius: 0 0 30px 30px;
+  color: #fff; /* белый текст по умолчанию */
+
+  /* Можно псевдоэлементы-пузыри, если хотите:
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    z-index: 1;
+  }
+  */
+}
+
+/* Полупрозрачная панель для списка тестов */
+.tests-panel {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  h2 {
+    color: #fff;
+  }
+
+  .list-group-item.test-item {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: flex-start;
+
+    &:hover {
+      transform: scale(1.01);
+    }
+  }
+
+  .btn-outline-light {
+    color: #fff;
+    border-color: #fff;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+/* Модальные окна (стиль для светлой темы, при желании адаптируйте под .dark-theme) */
+
+/* Адаптив */
+@media (max-width: 576px) {
+  .tests-panel {
+    padding: 1rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+}

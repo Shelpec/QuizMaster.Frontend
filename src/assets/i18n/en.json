@@ -1,0 +1,16 @@
+{
+    "HOME_TITLE": "Welcome to QuizMasterAPI!",
+    "HOME_DESCRIPTION": "A platform for creating and taking quizzes. You can create tests, add questions, track results, and much more!",
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "GO_TO_TESTS": "Go to Tests",
+    "MY_HISTORY": "My Test History",
+    "WHY_CHOOSE": "Why choose QuizMasterAPI?",
+    "STEP_1": "1. Register or Login",
+    "STEP_2": "2. Create questions and tests",
+    "STEP_3": "3. Take a test",
+    "STEP_4": "4. View history",
+    "STEP_5": "5. PDF Reports",
+    "CREATE_TEST": "Create Test"
+  }
+  

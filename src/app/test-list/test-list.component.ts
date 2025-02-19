@@ -22,6 +22,8 @@ import { UserTestsService } from '../services/user-tests.service';
 import { TestAnalyticsComponent } from '../analytics/test-analytics.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
+import { jsPDF } from 'jspdf';
+
 @Component({
   selector: 'app-test-list',
   standalone: true,
@@ -31,7 +33,8 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     TestAnalyticsComponent,
     NgxChartsModule
   ],
-  templateUrl: './test-list.component.html'
+  templateUrl: './test-list.component.html',
+  styleUrls: ['./test-list.component.scss']
 })
 export class TestListComponent implements OnInit {
   tests: TestDto[] = [];
@@ -673,4 +676,32 @@ export class TestListComponent implements OnInit {
     const modalObj = (window as any).bootstrap.Modal.getOrCreateInstance(el);
     modalObj.hide();
   }
+
+  downloadPdf(test: TestDto): void {
+    this.testsService.downloadReportPdf(test.id).subscribe({
+      next: (pdfBlob: Blob) => {
+        // Создаём URL из Blob:
+        const fileName = `TestReport_${test.id}.pdf`;
+        const url = window.URL.createObjectURL(pdfBlob);
+  
+        // Создаём временную ссылку <a>, чтобы «симулировать» клик для скачивания файла
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName; // имя сохраняемого файла
+        link.click();
+  
+        // Освобождаем URL из памяти
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Ошибка при скачивании PDF:', err);
+        alert('Не удалось скачать PDF.');
+      }
+    });
+  }
+  
 }
+function autoTable(doc: jsPDF, arg1: { startY: number; head: string[][]; body: string[][]; theme: string; headStyles: { fillColor: number[]; }; }) {
+  throw new Error('Function not implemented.');
+}
+

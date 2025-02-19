@@ -391,7 +391,4 @@ export class QuestionsListComponent implements OnInit {
       error: (err) => console.error('Error deleting category', err)
     });
   }
-
-  
-
 }
