@@ -8,11 +8,12 @@ import { Question, UpdateQuestionDto } from '../dtos/question.dto';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { QuestionTypeEnum } from '../enums/question-type.enum';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-question-details',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './question-details.component.html'
 })
 export class QuestionDetailsComponent implements OnInit {

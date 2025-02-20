@@ -5,21 +5,21 @@
 
     <!-- Заголовок + кнопки Go to Tests / History -->
     <div class="d-flex justify-content-center gap-3 mb-4">
-      <button class="btn btn-success" (click)="goToTests()">Go to Tests</button>
-      <button class="btn btn-warning" (click)="goToHistory()">History User Tests</button>
+      <button class="btn btn-success" (click)="goToTests()">{{'GO_TO_TESTS' | translate }}</button>
+      <button class="btn btn-warning" (click)="goToHistory()">{{'GO_TO_HISTORY' | translate }}</button>
     </div>
 
     <!-- Основной блок для списка вопросов -->
     <div class="questions-panel p-3" data-aos="fade-up">
-      <h2 class="mb-3 text-center">Questions List</h2>
+      <h2 class="mb-3 text-center">{{'QUESTIONS_LIST_TITLE' | translate }}</h2>
 
       <!-- Manage Categories / Topics -->
       <div class="mb-3">
         <button class="btn btn-outline-secondary me-2" (click)="openCategoriesModal()">
-          Manage Categories
+          {{'MANAGE_CATEGORIES' | translate }}
         </button>
         <button class="btn btn-outline-info" (click)="openTopicsModal()">
-          Manage Topics
+          {{'MANAGE_TOPICS' | translate }}
         </button>
       </div>
 
@@ -33,7 +33,7 @@
         </div>
         <div class="col-auto">
           <button class="btn btn-primary" (click)="goToQuestion()">
-            Search by ID
+            {{'SEARCH_BY_ID' | translate }}
           </button>
         </div>
       </div>
@@ -43,7 +43,7 @@
               data-bs-toggle="modal"
               data-bs-target="#questionModal"
               (click)="openCreateModal()">
-        + Create Question
+              {{'CREATE_QUESTION' | translate }}
       </button>
 
       <!-- Список вопросов -->
@@ -66,7 +66,7 @@
                 <span class="small"
                       *ngIf="ans.isCorrect"
                       style="color: #07bc0c;">
-                  (Correct)
+                      {{'CORRECT' | translate }}
                 </span>
               </li>
             </ul>
@@ -78,11 +78,11 @@
                     data-bs-toggle="modal"
                     data-bs-target="#questionModal"
                     (click)="openEditModal(q)">
-              Edit
+                    {{'EDIT' | translate }}
             </button>
             <button class="btn btn-sm btn-danger"
                     (click)="deleteQuestion(q)">
-              Delete
+                    {{'DELETE' | translate }}
             </button>
           </div>
         </li>
@@ -93,19 +93,19 @@
         <button class="btn btn-outline-light me-2"
                 (click)="prevPage()"
                 [disabled]="currentPage <= 1">
-          Prev
+                {{'PREV' | translate }}
         </button>
         <span class="me-2">
-          Page {{ currentPage }} / {{ totalPages }}
+          {{'PAGE' | translate }} {{ currentPage }} / {{ totalPages }}
         </span>
         <button class="btn btn-outline-light"
                 (click)="nextPage()"
                 [disabled]="currentPage >= totalPages">
-          Next
+                {{'NEXT' | translate }}
         </button>
       </div>
       <div class="text-muted text-center mt-2">
-        Total Items: {{ totalItems }}
+        {{'TOTAL_ITEMS' | translate }}: {{ totalItems }}
       </div>
     </div><!-- /questions-panel -->
 
@@ -124,7 +124,7 @@
 
       <div class="modal-header">
         <h5 class="modal-title" id="questionModalLabel">
-          {{ isNew ? 'Create Question' : 'Edit Question' }}
+          {{ isNew ? ('MODAL_CREATE_QUESTION' | translate)  : ('MODAL_EDIT_QUESTION' | translate) }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -133,7 +133,7 @@
         <form>
           <!-- Question Text -->
           <div class="mb-3">
-            <label class="form-label">Question Text</label>
+            <label class="form-label">{{'QUESTION_TEXT' | translate }}</label>
             <input type="text"
                    class="form-control"
                    [(ngModel)]="currentQuestion.text"
@@ -142,7 +142,7 @@
 
           <!-- Topic -->
           <div class="mb-3">
-            <label class="form-label">Topic</label>
+            <label class="form-label">{{'TOPIC' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="currentQuestion.topicId"
                     name="topicId">
@@ -152,7 +152,7 @@
 
           <!-- QuestionType -->
           <div class="mb-3">
-            <label class="form-label">Question Type</label>
+            <label class="form-label">{{'QUESTION_TYPE' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="currentQuestion.questionType"
                     name="questionType">
@@ -164,7 +164,7 @@
 
           <!-- correctTextAnswer (только если OpenText) -->
           <div class="mb-3" *ngIf="isOpenTextType()">
-            <label class="form-label">Correct Text Answer</label>
+            <label class="form-label">{{'CORRECT_TEXT_ANSWER' | translate }}</label>
             <input type="text"
                    class="form-control"
                    [(ngModel)]="currentQuestion.correctTextAnswer"
@@ -173,7 +173,7 @@
 
           <!-- Блок вариантов (не показываем, если OpenText) -->
           <div *ngIf="shouldShowAnswerOptions()">
-            <div class="mb-2 fw-bold">Answer Options:</div>
+            <div class="mb-2 fw-bold">{{'ANSWER_OPTIONS' | translate }}:</div>
 
             <div class="row g-2 mb-2"
                  *ngFor="let ans of currentQuestion.answerOptions; let i = index">
@@ -192,14 +192,14 @@
                        [(ngModel)]="ans.isCorrect"
                        name="answerIsCorrect{{i}}"
                        (change)="onIsCorrectChange(i)">
-                <label class="form-check-label">IsCorrect?</label>
+                <label class="form-check-label">{{'IS_CORRECT' | translate }}</label>
               </div>
             </div>
 
             <button type="button"
                     class="btn btn-sm btn-outline-secondary"
                     (click)="addAnswerOption()">
-              + Add Option
+                    {{'ADD_OPTION' | translate }}
             </button>
           </div>
 
@@ -210,13 +210,13 @@
         <button type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal">
-          Close
+                {{'CLOSE' | translate }}
         </button>
         <button type="button"
                 class="btn btn-primary"
                 data-bs-dismiss="modal"
                 (click)="saveQuestion()">
-          Save
+                {{'SAVE' | translate }}
         </button>
       </div>
 
@@ -233,7 +233,7 @@
   <div class="modal-dialog">
     <div class="modal-content questions-modal">
       <div class="modal-header">
-        <h5 class="modal-title">Manage Topics</h5>
+        <h5 class="modal-title">{{'MANAGE_TOPICS' | translate }}</h5>
         <button type="button" class="btn-close" (click)="closeTopicsModal()"></button>
       </div>
 
@@ -246,18 +246,18 @@
             <div>
               <button class="btn btn-sm btn-secondary me-2"
                       (click)="editTopic(t)">
-                Edit
+                      {{'EDIT' | translate }}
               </button>
               <button class="btn btn-sm btn-danger"
                       (click)="deleteTopic(t)">
-                Delete
+                      {{'DELETE' | translate }}
               </button>
             </div>
           </li>
         </ul>
 
         <!-- Форма редактирования/создания topic -->
-        <h6>{{ isTopicNew ? 'Create Topic' : 'Edit Topic' }}</h6>
+        <h6>{{ isTopicNew ? ('MODAL_CREATE_TOPIC' | translate) : ('MODAL_EDIT_TOPIC' | translate)}}</h6>
         <div class="mb-3">
           <input type="text"
                  class="form-control"
@@ -267,7 +267,7 @@
         </div>
 
         <div class="mb-3">
-          <label>Category:</label>
+          <label>{{'CATEGORY' | translate }}:</label>
           <select class="form-select"
                   [(ngModel)]="currentTopic.categoryId"
                   name="categoryId">
@@ -280,11 +280,11 @@
 
         <button class="btn btn-primary"
                 (click)="saveTopic()">
-          Save Topic
+                {{'SAVE_TOPIC' | translate }}
         </button>
         <button class="btn btn-outline-secondary ms-2"
                 (click)="newTopic()">
-          + New Topic
+                {{'NEW_TOPIC' | translate }}
         </button>
       </div>
 
@@ -292,7 +292,7 @@
         <button type="button"
                 class="btn btn-secondary"
                 (click)="closeTopicsModal()">
-          Close
+                {{'CLOSE' | translate }}
         </button>
       </div>
     </div>
@@ -308,7 +308,7 @@
   <div class="modal-dialog">
     <div class="modal-content questions-modal">
       <div class="modal-header">
-        <h5 class="modal-title">Manage Categories</h5>
+        <h5 class="modal-title">{{'MANAGE_CATEGORIES' | translate }}</h5>
         <button type="button" class="btn-close" (click)="closeCategoriesModal()"></button>
       </div>
 
@@ -321,17 +321,17 @@
             <div>
               <button class="btn btn-sm btn-secondary me-2"
                       (click)="editCategory(c)">
-                Edit
+                      {{'EDIT' | translate }}
               </button>
               <button class="btn btn-sm btn-danger"
                       (click)="deleteCategory(c)">
-                Delete
+                      {{'DELETE' | translate }}
               </button>
             </div>
           </li>
         </ul>
 
-        <h6>{{ isCategoryNew ? 'Create Category' : 'Edit Category' }}</h6>
+        <h6>{{ isCategoryNew ? ('CREATE_CATEGORY' | translate) : ('EDIT_CATEGORY' | translate) }}</h6>
         <div class="mb-3">
           <input type="text"
                  class="form-control"
@@ -342,11 +342,11 @@
 
         <button class="btn btn-primary"
                 (click)="saveCategory()">
-          Save Category
+                {{'SAVE_CATEGORY' | translate }}
         </button>
         <button class="btn btn-outline-secondary ms-2"
                 (click)="newCategory()">
-          + New Category
+                {{'NEW_CATEGORY' | translate }}
         </button>
       </div>
 
@@ -354,7 +354,7 @@
         <button type="button"
                 class="btn btn-secondary"
                 (click)="closeCategoriesModal()">
-          Close
+                {{'CLOSE' | translate }}
         </button>
       </div>
     </div>

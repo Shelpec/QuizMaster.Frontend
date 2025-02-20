@@ -3,7 +3,7 @@
 <div class="tests-gradient py-4 mb-4">
   <div class="container">
 
-    <h2 class="mb-3 text-center">List of Tests</h2>
+    <h2 class="mb-3 text-center">{{'TESTS_LIST_TITLE' | translate }}</h2>
 
     <!-- Кнопка Create Test (Wizard) -->
     <button
@@ -12,7 +12,7 @@
       *ngIf="authService.isLoggedIn() && authService.isAdmin()"
       data-aos="fade-up"
     >
-      + Create Test (Wizard)
+    {{'CREATE_TEST' | translate }}
     </button>
 
     <!-- Полупрозрачная панель со списком -->
@@ -29,14 +29,14 @@
             <div class="flex-grow-1">
               <h5>{{ t.name }}</h5>
               <p>
-                <strong>Count:</strong> {{ t.countOfQuestions }}<br />
-                <strong>Topic:</strong> {{ t.topicName || '---' }}<br />
-                <strong>Created:</strong> {{ t.createdAt }}<br />
-                <strong>Private?</strong> {{ t.isPrivate ? 'Yes' : 'No' }}<br />
-                <strong>Random?</strong> {{ t.isRandom ? 'Yes' : 'No' }}<br />
-                <strong>TestType:</strong> {{ t.testType }}<br />
-                <strong>TimeLimit:</strong>
-                {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' min') : '---' }}
+                <strong>{{'COUNT' | translate }}:</strong> {{ t.countOfQuestions }}<br />
+                <strong>{{'TOPIC' | translate }}:</strong> {{ t.topicName || '---' }}<br />
+                <strong>{{'CREATED' | translate }}:</strong> {{ t.createdAt }}<br />
+                <strong>{{'PRIVATE' | translate }}</strong> {{ t.isPrivate ? ('YES' | translate ) : ('NO' | translate ) }}<br />
+                <strong>{{'RANDOM' | translate }}</strong> {{ t.isRandom ? ('YES' | translate ) : ('NO' | translate ) }}<br />
+                <strong>{{'TEST_TYPE' | translate }}:</strong> {{ t.testType }}<br />
+                <strong>{{'TIME_LIMIT' | translate }}:</strong>
+                {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' ' + ('MINUTES' | translate)) : '---' }}
               </p>
             </div>
 
@@ -45,36 +45,36 @@
               <button class="btn btn-sm btn-secondary"
                       (click)="openEditModal(t)"
                       *ngIf="authService.isLoggedIn() && authService.isAdmin()">
-                Edit
+                      {{'EDIT' | translate }}
               </button>
 
               <button class="btn btn-sm btn-info"
                       *ngIf="authService.isLoggedIn() && authService.isAdmin() && !t.isRandom"
                       (click)="openManageQuestions(t)">
-                Manage Q
+                      {{'MANAGE_QUESTIONS' | translate }}
               </button>
 
               <button class="btn btn-sm btn-danger"
                       (click)="deleteTest(t)"
                       *ngIf="authService.isLoggedIn() && authService.isAdmin()">
-                Delete
+                      {{'DELETE' | translate }}
               </button>
 
               <button class="btn btn-sm btn-success"
                       (click)="onStartTest(t)"
                       *ngIf="authService.isLoggedIn()">
-                Start
+                      {{'START' | translate }}
               </button>
 
               <button class="btn btn-sm btn-warning"
                       (click)="downloadPdf(t)">
-                Download PDF
+                      {{'DOWNLOAD_PDF' | translate }}
               </button>
 
               <button class="btn btn-sm btn-primary"
                       *ngIf="authService.isAdmin()"
                       (click)="toggleShowAnalytics(t.id)">
-                {{ shownAnalytics[t.id] ? 'Hide' : 'Show' }} Analytics
+                {{ shownAnalytics[t.id] ? ('HIDE_ANALYTICS' | translate ) : ('SHOW_ANALYTICS' | translate ) }}
               </button>
             </div>
           </div>
@@ -95,21 +95,21 @@
           (click)="prevPage()"
           [disabled]="currentPage <= 1"
         >
-          Prev
+        {{'PREV' | translate }}
         </button>
         <span class="me-2">
-          Page {{ currentPage }} / {{ totalPages }}
+          {{'PAGE' | translate }} {{ currentPage }} / {{ totalPages }}
         </span>
         <button
           class="btn btn-outline-light"
           (click)="nextPage()"
           [disabled]="currentPage >= totalPages"
         >
-          Next
+        {{'NEXT' | translate }}
         </button>
       </div>
       <div class="text-muted text-center mt-2">
-        Total Items: {{ totalItems }}
+        {{'TOTAL_ITEMS' | translate }}: {{ totalItems }}
       </div>
     </div><!-- /tests-panel -->
 
@@ -128,7 +128,7 @@
     <div class="modal-content test-modal">
 
       <div class="modal-header">
-        <h5 class="modal-title" id="testModalLabel">Edit Test</h5>
+        <h5 class="modal-title" id="testModalLabel">{{'EDIT_TEST' | translate }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -136,7 +136,7 @@
         <form>
           <!-- Name -->
           <div class="mb-3">
-            <label class="form-label">Test Name</label>
+            <label class="form-label">{{'TEST_NAME' | translate }}</label>
             <input
               type="text"
               class="form-control"
@@ -147,7 +147,7 @@
 
           <!-- CountOfQuestions -->
           <div class="mb-3">
-            <label class="form-label">Count Of Questions</label>
+            <label class="form-label">{{'COUNT_OF_QUESTIONS' | translate }}</label>
             <input
               type="number"
               class="form-control"
@@ -159,11 +159,11 @@
 
           <!-- Topic -->
           <div class="mb-3">
-            <label>Topic</label>
+            <label>{{'TOPIC' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="currentTest.topicId"
                     name="topicId">
-              <option [value]="undefined">-- No Topic --</option>
+              <option [value]="undefined">{{'NO_TOPIC' | translate }}</option>
               <option *ngFor="let tp of topics" [value]="tp.id">
                 {{ tp.name }}
               </option>
@@ -180,7 +180,7 @@
               name="editIsPrivate"
             />
             <label class="form-check-label" for="chkEditIsPrivate">
-              Is Private?
+              {{'IS_PRIVATE' | translate }}
             </label>
           </div>
 
@@ -194,13 +194,13 @@
               name="editIsRandom"
             />
             <label class="form-check-label" for="chkEditIsRandom">
-              Is Random?
+              {{'IS_RANDOM' | translate }}
             </label>
           </div>
 
           <!-- TestType -->
           <div class="mb-3">
-            <label>Test Type</label>
+            <label>{{'TEST_TYPE' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="currentTest.testType"
                     name="editTestType">
@@ -212,7 +212,7 @@
 
           <!-- TimeLimitMinutes -->
           <div class="mb-3">
-            <label>Time Limit (minutes)</label>
+            <label>{{'TIME_LIMIT' | translate }}</label>
             <input
               type="number"
               class="form-control"
@@ -220,7 +220,7 @@
               name="editTimeLimitMinutes"
               min="0"
             />
-            <small class="text-muted">0 или пусто, если без лимита</small>
+            <small class="text-muted">{{'LEAVE_EMPTY_OR_0' | translate }}</small>
           </div>
 
           <!-- Manage Access -->
@@ -233,7 +233,7 @@
               class="btn btn-outline-secondary"
               (click)="openAccessModal()"
             >
-              Manage Access
+            {{'MANAGE_ACCESS' | translate }}
             </button>
           </div>
         </form>
@@ -243,12 +243,12 @@
         <button type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal">
-          Close
+                {{'CLOSE' | translate }}
         </button>
         <button type="button"
                 class="btn btn-primary"
                 (click)="saveTest()">
-          Save
+                {{'SAVE' | translate }}
         </button>
       </div>
 
@@ -268,7 +268,7 @@
     <div class="modal-content test-modal">
       <div class="modal-header">
         <h5 class="modal-title">
-          Manage Access for: {{ currentTest.name }}
+          {{'MANAGE_ACCESS' | translate }}: {{ currentTest.name }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -276,10 +276,10 @@
       <div class="modal-body">
         <!-- Search -->
         <div class="mb-3">
-          <label>Search users (by name / email)</label>
+          <label>{{'SEARCH_USERS' | translate }}</label>
           <input type="text"
                  class="form-control"
-                 placeholder="Enter name or email..."
+                 placeholder="{{'ENTER_NAME_OR_EMAIL' | translate }}"
                  [(ngModel)]="searchText"
                  (input)="onSearchUsers()">
         </div>
@@ -291,7 +291,7 @@
             <span>{{ user.fullName }} ({{ user.email }})</span>
             <button class="btn btn-sm btn-primary"
                     (click)="addAccess(user.id)">
-              +Add Access
+                    {{'ADD_ACCESS' | translate }}
             </button>
           </li>
         </ul>
@@ -299,14 +299,14 @@
         <hr>
 
         <!-- Current Access -->
-        <h6>Current Access:</h6>
+        <h6>{{'CURRENT_ACCESS' | translate }}</h6>
         <ul class="list-group">
           <li class="list-group-item d-flex justify-content-between align-items-center"
               *ngFor="let au of currentAccessUsers">
             <span>{{ au.fullName }} ({{ au.email }})</span>
             <button class="btn btn-sm btn-danger"
                     (click)="removeAccess(au.userId)">
-              Remove
+                    {{'REMOVE' | translate }}
             </button>
           </li>
         </ul>
@@ -316,7 +316,7 @@
         <button type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal">
-          Close
+                {{'CLOSE' | translate }}
         </button>
       </div>
 
@@ -337,7 +337,7 @@
 
       <div class="modal-header">
         <h5 class="modal-title">
-          Manage Questions for Test: {{ currentTest.name }}
+          {{'MANAGE_QUESTIONS_FOR_TEST' | translate }}{{ currentTest.name }}
         </h5>
         <button type="button"
                 class="btn-close"
@@ -349,33 +349,33 @@
         <!-- +Create Question -->
         <button class="btn btn-sm btn-outline-primary mb-2"
                 (click)="openCreateQuestionModal()">
-          + Create Question
+                {{'CREATE_QUESTION' | translate }}
         </button>
 
         <div class="row">
           <div class="col-md-6">
-            <h6>Candidate Questions</h6>
+            <h6>{{'CANDIDATE_QUESTIONS' | translate }}</h6>
             <ul class="list-group" style="max-height: 300px; overflow:auto;">
               <li class="list-group-item d-flex justify-content-between align-items-center"
                   *ngFor="let cq of candidateQuestions">
                 <span>{{ cq.text }} ({{ cq.questionType }})</span>
                 <button class="btn btn-sm btn-success"
                         (click)="addQuestionToTest(cq.id)">
-                  +Add
+                        {{'ADD_QUESTION' | translate }}
                 </button>
               </li>
             </ul>
           </div>
 
           <div class="col-md-6">
-            <h6>Test Questions</h6>
+            <h6>{{'TEST_QUESTIONS' | translate }}</h6>
             <ul class="list-group" style="max-height: 300px; overflow:auto;">
               <li class="list-group-item d-flex justify-content-between align-items-center"
                   *ngFor="let tq of testQuestions">
                 <span>{{ tq.text }} ({{ tq.questionType }})</span>
                 <button class="btn btn-sm btn-danger"
                         (click)="removeQuestionFromTest(tq.id)">
-                  Remove
+                        {{'REMOVE_QUESTION' | translate }}
                 </button>
               </li>
             </ul>
@@ -388,7 +388,7 @@
                 class="btn btn-secondary"
                 data-bs-dismiss="modal"
                 (click)="closeManageQuestionsModal()">
-          Close
+                {{'CLOSE' | translate }}
         </button>
       </div>
 
@@ -409,7 +409,7 @@
 
       <div class="modal-header">
         <h5 class="modal-title">
-          Create a new Question
+          {{'CREATE_NEW_QUESTION' | translate }}
         </h5>
         <button type="button"
                 class="btn-close"
@@ -420,7 +420,7 @@
         <form>
           <!-- Question Text -->
           <div class="mb-3">
-            <label>Question Text</label>
+            <label>{{'QUESTION_TEXT' | translate }}</label>
             <input type="text"
                    class="form-control"
                    [(ngModel)]="newQuestion.text"
@@ -429,7 +429,7 @@
 
           <!-- QuestionType -->
           <div class="mb-3">
-            <label>Question Type</label>
+            <label>{{'QUESTION_TYPE' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="newQuestion.questionType"
                     name="newQuestionType">
@@ -441,7 +441,7 @@
 
           <!-- correctTextAnswer => if OpenText -->
           <div class="mb-3" *ngIf="newQuestion.questionType === 3">
-            <label>Correct Text Answer</label>
+            <label>{{'CORRECT_TEXT_ANSWER' | translate }}</label>
             <input type="text"
                    class="form-control"
                    [(ngModel)]="newQuestion.correctTextAnswer"
@@ -450,7 +450,7 @@
 
           <!-- AnswerOptions => if not OpenText -->
           <div class="mb-3" *ngIf="newQuestion.questionType !== 3">
-            <label>Answer Options</label>
+            <label>{{'ANSWER_OPTIONS' | translate }}</label>
             <div class="row g-2 mb-2"
                  *ngFor="let ans of newQuestion.answerOptions; let i = index">
               <div class="col-8">
@@ -466,7 +466,7 @@
                        [(ngModel)]="ans.isCorrect"
                        name="answerIsCorrect{{i}}">
                 <label class="form-check-label">
-                  IsCorrect?
+                  {{'IS_CORRECT' | translate }}
                 </label>
               </div>
             </div>
@@ -474,7 +474,7 @@
             <button type="button"
                     class="btn btn-sm btn-outline-secondary"
                     (click)="addOptionToNewQuestion()">
-              +Add Option
+                    {{'ADD_OPTION' | translate }}
             </button>
           </div>
         </form>
@@ -484,12 +484,12 @@
         <button type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal">
-          Close
+                {{'CLOSE' | translate }}
         </button>
         <button type="button"
                 class="btn btn-primary"
                 (click)="saveNewQuestion()">
-          Save
+                {{'SAVE' | translate }}
         </button>
       </div>
     </div>
@@ -508,20 +508,20 @@
     <div class="modal-content test-modal">
 
       <div class="modal-header">
-        <h5 class="modal-title">Create Test (Wizard)</h5>
+        <h5 class="modal-title">{{'WIZARD_CREATE_TEST' | translate }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
         <!-- Шаг 1 (Category) -->
         <div *ngIf="wizardStep === 1">
-          <h5>Step 1: Select or Create Category</h5>
+          <h5>{{'WIZARD_STEP_1' | translate }}</h5>
 
-          <label>Select Category:</label>
+          <label>{{'SELECT_CATEGORY' | translate }}</label>
           <select class="form-select"
                   [(ngModel)]="selectedCategoryId"
                   name="selectedCategoryId">
-            <option [value]="null">-- choose category --</option>
+            <option [value]="null">{{'CHOOSE_CATEGORY' | translate }}</option>
             <option *ngFor="let cat of categories" [value]="cat.id">
               {{ cat.name }}
             </option>
@@ -530,33 +530,33 @@
           <div class="mt-3">
             <button class="btn btn-outline-secondary"
                     (click)="toggleNewCategoryForm()">
-              {{ showNewCategoryForm ? 'Cancel' : '+ Create Category' }}
+              {{ showNewCategoryForm ? ('CANCEL' | translate ) : ('CREATE_CATEGORY' | translate ) }}
             </button>
           </div>
 
           <div class="mt-2" *ngIf="showNewCategoryForm">
-            <label>New Category Name:</label>
+            <label>{{'NEW_CATEGORY_NAME' | translate }}</label>
             <input type="text"
                    class="form-control mb-2"
                    [(ngModel)]="newCategoryName"
                    name="newCategoryName">
             <button class="btn btn-sm btn-info"
                     (click)="saveNewCategory()">
-              Save Category
+                    {{'SAVE_CATEGORY' | translate }}
             </button>
           </div>
         </div>
 
         <!-- Шаг 2 (Topic) -->
         <div *ngIf="wizardStep === 2">
-          <h5>Step 2: Select or Create Topic</h5>
+          <h5>{{'WIZARD_STEP_2' | translate }}</h5>
           <p class="text-muted">Category ID = {{ selectedCategoryId }}</p>
 
-          <label>Select Topic:</label>
+          <label>{{'SELECT_TOPIC' | translate }}</label>
           <select class="form-select"
                   [(ngModel)]="selectedTopicId"
                   name="selectedTopicId">
-            <option [value]="null">-- choose topic --</option>
+            <option [value]="null">{{'CHOOSE_TOPIC' | translate }}</option>
             <option *ngFor="let tp of wizardTopics" [value]="tp.id">
               {{ tp.name }}
             </option>
@@ -565,37 +565,37 @@
           <div class="mt-3">
             <button class="btn btn-outline-secondary"
                     (click)="toggleNewTopicForm()">
-              {{ showNewTopicForm ? 'Cancel' : '+ Create Topic' }}
+              {{ showNewTopicForm ? ('CANCEL' | translate) : ('CREATE_TOPIC' | translate)  }}
             </button>
           </div>
 
           <div class="mt-2" *ngIf="showNewTopicForm">
-            <label>New Topic Name:</label>
+            <label>{{'NEW_TOPIC_NAME' | translate }}</label>
             <input type="text"
                    class="form-control mb-2"
                    [(ngModel)]="newTopicName"
                    name="newTopicName">
             <button class="btn btn-sm btn-info"
                     (click)="saveNewTopic()">
-              Save Topic
+                    {{'SAVE_TOPIC' | translate }}
             </button>
           </div>
         </div>
 
         <!-- Шаг 3 (Test Info) -->
         <div *ngIf="wizardStep === 3">
-          <h5>Step 3: Test Info</h5>
+          <h5>{{'WIZARD_STEP_3' | translate }}</h5>
           <p class="text-muted">Topic ID = {{ selectedTopicId }}</p>
 
           <div class="mb-3">
-            <label>Test Name</label>
+            <label>{{'TEST_NAME' | translate }}</label>
             <input type="text"
                    class="form-control"
                    [(ngModel)]="wizardTestName"
                    name="wizardTestName">
           </div>
           <div class="mb-3">
-            <label>Count Of Questions</label>
+            <label>{{'COUNT' | translate }}</label>
             <input type="number"
                    class="form-control"
                    [(ngModel)]="wizardCountOfQuestions"
@@ -609,7 +609,7 @@
                    [(ngModel)]="wizardIsPrivate"
                    name="wizardIsPrivate">
             <label class="form-check-label" for="chkWizIsPrivate">
-              Is Private?
+              {{'PRIVATE' | translate }}
             </label>
           </div>
           <div class="mb-3 form-check">
@@ -619,11 +619,11 @@
                    [(ngModel)]="wizardIsRandom"
                    name="wizardIsRandom">
             <label class="form-check-label" for="chkWizIsRandom">
-              Is Random?
+              {{'RANDOM' | translate }}
             </label>
           </div>
           <div class="mb-3">
-            <label>Test Type</label>
+            <label>{{'TEST_TYPE' | translate }}</label>
             <select class="form-select"
                     [(ngModel)]="wizardTestType"
                     name="wizardTestType">
@@ -633,14 +633,14 @@
             </select>
           </div>
           <div class="mb-3">
-            <label>Time Limit (minutes)</label>
+            <label>{{'TIME_LIMIT' | translate }}</label>
             <input type="number"
                    class="form-control"
                    [(ngModel)]="wizardTimeLimitMinutes"
                    name="wizardTimeLimitMinutes"
                    min="0">
             <small class="text-muted">
-              Leave empty or 0 if no time limit
+              {{'LEAVE_EMPTY_OR_0' | translate }}
             </small>
           </div>
         </div>
@@ -651,28 +651,28 @@
                 class="btn btn-secondary"
                 *ngIf="wizardStep > 1"
                 (click)="wizardStep = wizardStep - 1">
-          Back
+                {{'BACK' | translate }}
         </button>
 
         <button type="button"
                 class="btn btn-primary"
                 *ngIf="wizardStep === 1"
                 (click)="goToStep2()">
-          Next
+                {{'NEXT' | translate }}
         </button>
 
         <button type="button"
                 class="btn btn-primary"
                 *ngIf="wizardStep === 2"
                 (click)="goToStep3()">
-          Next
+                {{'NEXT' | translate }}
         </button>
 
         <button type="button"
                 class="btn btn-success"
                 *ngIf="wizardStep === 3"
                 (click)="saveWizardTest()">
-          Finish
+                {{'FINISH' | translate }}
         </button>
       </div>
     </div>

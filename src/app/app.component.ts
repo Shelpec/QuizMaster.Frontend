@@ -3,13 +3,13 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import Aos from 'aos';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterOutlet, TranslateModule],
   templateUrl: './app.component.html'
 })
 
@@ -23,12 +23,12 @@ export class AppComponent implements OnInit {
     public themeService: ThemeService, 
     private translate: TranslateService) {
       // Указываем, какие языки поддерживаем:
-      translate.addLangs(['en','ru']);
+      translate.addLangs(['en','ru', 'kz']);
       // Язык по умолчанию:
       translate.setDefaultLang('ru');
       // Если хотим автоматически определить язык браузера:
-      const browserLang = translate.getBrowserLang() || 'en';
-      translate.use(['en','ru'].includes(browserLang) ? browserLang : 'ru');
+      const browserLang = translate.getBrowserLang() || 'kz';
+      translate.use(['en','ru', 'kz'].includes(browserLang) ? browserLang : 'ru');
   }
   switchLanguage(lang: string) {
     this.translate.use(lang);

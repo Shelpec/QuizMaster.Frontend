@@ -31,34 +31,35 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav ms-auto">
         <!-- Ссылки -->
-        <a class="nav-link" routerLink="/">Home</a>
-        <a class="nav-link" routerLink="/tests">Tests</a>
-        <a class="nav-link" routerLink="/questions">Questions</a>
+        <a class="nav-link" routerLink="/">{{ 'NAV_HOME' | translate }}</a>
+        <a class="nav-link" routerLink="/tests">{{ 'NAV_TESTS' | translate }}</a>
+        <a class="nav-link" routerLink="/questions">{{ 'NAV_QUESTIONS' | translate }}</a>
 
         <!-- Если НЕ авторизован -->
         <ng-container *ngIf="!authService.isLoggedIn(); else loggedIn">
-          <a class="nav-link" routerLink="/login">Login</a>
-          <a class="nav-link" routerLink="/register">Register</a>
+          <a class="nav-link" routerLink="/login">{{ 'NAV_LOGIN' | translate }}</a>
+          <a class="nav-link" routerLink="/register">{{ 'NAV_REGISTER' | translate }}</a>
         </ng-container>
 
         <!-- Если авторизован -->
         <ng-template #loggedIn>
-          <a class="nav-link" routerLink="/history-user-tests">History</a>
+          <a class="nav-link" routerLink="/history-user-tests">{{ 'NAV_HISTORY' | translate }}</a>
           <!-- Logout -->
-          <a class="nav-link text-danger" (click)="logout()">Logout</a>
+          <a class="nav-link text-danger" (click)="logout()">{{ 'NAV_LOGOUT' | translate }}</a>
         </ng-template>
       </div>
     </div>
 
         <!-- В app.component.html, рядом с кнопкой "темы" -->
     <select class="form-select w-auto ms-3" #langSelect (change)="switchLanguage(langSelect.value)">
-      <option value="en">English</option>
       <option value="ru">Русский</option>
+      <option value="en">English</option>
+      <option value="kz">Қазақша</option>
     </select>
 
     <!-- Переключатель тем (справа) -->
     <button class="btn btn-outline-light ms-3" (click)="themeService.toggleTheme()">
-      {{ themeService.getCurrentTheme() === 'light-theme' ? 'Dark Theme' : 'Light Theme' }}
+      {{ themeService.getCurrentTheme() === 'light-theme' ? ( 'NAV_DARK_THEME' | translate ) :( 'NAV_LIGHT_THEME' | translate ) }}
     </button>
   </div>
 </nav>

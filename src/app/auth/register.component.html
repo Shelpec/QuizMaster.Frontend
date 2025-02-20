@@ -1,28 +1,30 @@
 <div class="container mt-4">
-  <h2>Register</h2>
+  <h2>{{ 'REGISTER' | translate }}</h2>
 
   <form (ngSubmit)="onSubmit()">
     <div class="mb-3">
-      <label>Email</label>
+      <label>{{ 'EMAIL' | translate }}</label>
       <input type="email" class="form-control" [(ngModel)]="email" name="email" required>
     </div>
     <div class="mb-3">
-      <label>Password</label>
+      <label>{{ 'PASSWORD' | translate }}</label>
       <input type="password" class="form-control" [(ngModel)]="password" name="password" required>
     </div>
     <div class="mb-3">
-      <label>First Name</label>
+      <label>{{ 'FIRST_NAME' | translate }}</label>
       <input type="text" class="form-control" [(ngModel)]="firstName" name="firstName">
     </div>
     <div class="mb-3">
-      <label>Last Name</label>
+      <label>{{ 'LAST_NAME' | translate }}</label>
       <input type="text" class="form-control" [(ngModel)]="lastName" name="lastName">
     </div>
 
-    <div class="text-success" *ngIf="message">{{ message }}</div>
-    <div class="text-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="text-success" *ngIf="message">{{ 'SUCCESS_MESSAGE' | translate }}</div>
+    <div class="text-danger" *ngIf="errorMessage">{{ 'ERROR_MESSAGE' | translate }}</div>
 
-    <button type="submit" class="btn btn-primary me-2">Register</button>
-    <button type="button" class="btn btn-link" (click)="goLogin()">Go to Login</button>
+    <button type="submit" class="btn btn-primary me-2">{{ 'REGISTER' | translate }}</button>
+    <button type="button" class="btn btn-link" (click)="goLogin()">
+      {{ 'GO_TO_LOGIN' | translate }}
+    </button>
   </form>
 </div>

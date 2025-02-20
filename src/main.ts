@@ -1,7 +1,7 @@
 // src/main.ts
 
 import { bootstrapApplication } from '@angular/platform-browser';
-import { importProvidersFrom } from '@angular/core';
+import { importProvidersFrom, inject } from '@angular/core';
 import { HttpClientModule, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
@@ -9,19 +9,13 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 // Если нужен Interceptor для JWT:
 import { AuthInterceptor } from './app/interceptors/auth.interceptor'; // (если есть)
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-
-// Фабрика загрузки JSON-файлов:
-export function HttpLoaderFactory(http: HttpClient) {
-  // каталог, где будут лежать JSON-файлы переводов => '/assets/i18n'
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { HttpLoaderFactory } from './app/app.config';
 
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(HttpClientModule),
-    // Подключаем сам TranslateModule и указываем, как грузить переводы
+        // Подключаем сам TranslateModule и указываем, как грузить переводы
     importProvidersFrom(
       TranslateModule.forRoot({
         loader: {
@@ -39,5 +33,6 @@ bootstrapApplication(AppComponent, {
        multi: true
      }
   ]
-}).catch(err => console.error(err));
+})
+.catch(err => console.error(err));
 

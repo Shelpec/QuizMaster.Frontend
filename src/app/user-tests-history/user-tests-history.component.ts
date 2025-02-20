@@ -4,11 +4,12 @@ import { UserTestsService } from '../services/user-tests.service';
 import { UserTestHistoryDto } from '../dtos/user-test-history.dto';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-tests-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './user-tests-history.component.html',
   styleUrls: ['./user-tests-history.component.scss']
 })

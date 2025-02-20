@@ -1,23 +1,29 @@
 <div class="container mt-4">
-  <h2>User Tests History</h2>
+  <h2>{{ 'USER_TESTS_HISTORY' | translate }}</h2>
 
   <!-- Панель поиска (Admin) -->
   <div class="row g-2 mb-3" *ngIf="isAdmin">
     <div class="col-auto">
-      <label>UserTestId:</label>
+      <label>{{ 'USER_TEST_ID' | translate }}</label>
       <input type="number" [(ngModel)]="searchUserTestId" class="form-control" />
     </div>
     <div class="col-auto d-flex align-items-end">
-      <button class="btn btn-primary me-3" (click)="onSearchById()">Search by Id</button>
+      <button class="btn btn-primary me-3" (click)="onSearchById()">
+        {{ 'SEARCH_BY_ID' | translate }}
+      </button>
     </div>
 
     <div class="col-auto">
-      <label>Email:</label>
+      <label>{{ 'EMAIL' | translate }}</label>
       <input type="text" [(ngModel)]="searchEmail" class="form-control" />
     </div>
     <div class="col-auto d-flex align-items-end">
-      <button class="btn btn-primary me-3" (click)="onSearchByEmail()">Search by Email</button>
-      <button class="btn btn-outline-secondary" (click)="resetSearch()">Reset</button>
+      <button class="btn btn-primary me-3" (click)="onSearchByEmail()">
+        {{ 'SEARCH_BY_EMAIL' | translate }}
+      </button>
+      <button class="btn btn-outline-secondary" (click)="resetSearch()">
+        {{ 'RESET' | translate }}
+      </button>
     </div>
   </div>
 
@@ -25,29 +31,29 @@
   <div *ngFor="let item of allUserTests" class="border rounded p-3 mb-3 bg-light">
     <div class="d-flex justify-content-between">
       <div>
-        <strong>User:</strong> {{ item.userEmail }} ({{ item.userFullName }})<br/>
-        <strong>Test:</strong> {{ item.testName }}
+        <strong>{{ 'USER' | translate }}:</strong> {{ item.userEmail }} ({{ item.userFullName }})<br/>
+        <strong>{{ 'TEST' | translate }}:</strong> {{ item.testName }}
         (<i>{{ item.topicName || '---' }}</i>),
-        <strong>Questions:</strong> {{ item.testCountOfQuestions }}<br/>
+        <strong>{{ 'QUESTIONS' | translate }}:</strong> {{ item.testCountOfQuestions }}<br/>
 
         <!-- Показываем Correct: X/Y (если не Survey) -->
         <span *ngIf="!item.topicIsSurvey">
-          <strong>Correct:</strong> {{ item.correctAnswers }} / {{ item.totalQuestions }}
+          <strong>{{ 'CORRECT_ANSWERS' | translate }}:</strong> {{ item.correctAnswers }} / {{ item.totalQuestions }}
         </span>
         <br/>
 
-        <strong>DateCreated:</strong> {{ item.dateCreated }}<br/>
+        <strong>{{ 'DATE_CREATED' | translate }}:</strong> {{ item.dateCreated }}<br/>
 
         <!-- Показ времени -->
         <ng-container *ngIf="item.startTime">
-          <strong>Started:</strong> {{ item.startTime }}<br/>
+          <strong>{{ 'STARTED' | translate }}:</strong> {{ item.startTime }}<br/>
         </ng-container>
         <ng-container *ngIf="item.endTime">
-          <strong>Ended:</strong> {{ item.endTime }}<br/>
+          <strong>{{ 'ENDED' | translate }}:</strong> {{ item.endTime }}<br/>
         </ng-container>
         <ng-container *ngIf="item.timeSpentSeconds != null">
-          <strong>Time Spent:</strong>
-          {{ item.timeSpentSeconds }} seconds<br/>
+          <strong>{{ 'TIME_SPENT' | translate }}:</strong>
+          {{ item.timeSpentSeconds }} {{ 'SECONDS' | translate }}<br/>
         </ng-container>
       </div>
 
@@ -56,13 +62,13 @@
         <button class="btn btn-sm btn-danger"
                 (click)="deleteUserTest(item)"
                 *ngIf="isAdmin">
-          Delete
+          {{ 'DELETE' | translate }}
         </button>
 
         <!-- Кнопка раскрытия -->
         <button class="btn btn-sm btn-outline-primary ms-2"
                 (click)="toggleExpand(item.userTestId)">
-          {{ expanded[item.userTestId] ? 'Hide' : 'Show' }} details
+          {{ expanded[item.userTestId] ? ('HIDE_DETAILS' | translate) : ('SHOW_DETAILS' | translate) }}
         </button>
       </div>
     </div>
@@ -73,7 +79,7 @@
       <div *ngFor="let q of item.questions" class="mb-3 ps-3 border-bottom pb-2">
         <h5>
           {{ q.questionText }}
-          <small class="text-muted">[Type={{ q.questionType }}]</small>
+          <small class="text-muted">[{{ 'TYPE' | translate }}={{ q.questionType }}]</small>
         </h5>
 
         <!-- Если есть массив answerOptions -->
@@ -82,7 +88,7 @@
             
             <!-- Если у ответа есть userTextAnswer -> (OpenText) -->
             <div *ngIf="ans.userTextAnswer">
-              <strong>Your text answer:</strong>
+              <strong>{{ 'YOUR_TEXT_ANSWER' | translate }}</strong>
               <span [ngClass]="getTextAnswerClass(ans)">
                 {{ ans.userTextAnswer }}
               </span>
@@ -98,13 +104,13 @@
                 {{ ans.text }}
               </span>
               <span *ngIf="ans.isCorrect" class="text-success ms-2">
-                (Correct)
+                {{ 'CORRECT' | translate }}
               </span>
             </div>
           </ng-container>
         </div>
         <ng-template #noAnswers>
-          <em class="text-muted">No answers found.</em>
+          <em class="text-muted">{{ 'NO_ANSWERS_FOUND' | translate }}</em>
         </ng-template>
       </div>
     </div>
@@ -115,19 +121,19 @@
     <button class="btn btn-outline-secondary me-2"
             (click)="prevPage()"
             [disabled]="currentPage <= 1">
-      Prev
+      {{ 'PREV' | translate }}
     </button>
     <span class="me-2">
-      Page {{ currentPage }} / {{ totalPages }}
+      {{ 'PAGE' | translate }} {{ currentPage }} / {{ totalPages }}
     </span>
     <button class="btn btn-outline-secondary"
             (click)="nextPage()"
             [disabled]="currentPage >= totalPages">
-      Next
+      {{ 'NEXT' | translate }}
     </button>
   </div>
 
   <div class="text-muted text-center mt-2">
-    Total Items: {{ totalItems }}
+    {{ 'TOTAL_ITEMS' | translate }}: {{ totalItems }}
   </div>
 </div>

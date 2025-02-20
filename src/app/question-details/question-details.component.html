@@ -1,29 +1,33 @@
 <div class="container mt-4">
-  <h2>Question Details</h2>
+  <h2>{{ 'QUESTION_DETAILS' | translate }}</h2>
 
   <div *ngIf="question; else loadingBlock">
     <!-- Если не редактируем, просто показываем -->
     <div *ngIf="!isEditing">
       <h4>{{ question.text }}</h4>
-      <p class="text-muted">Topic: {{ question.topicName }}</p>
+      <p class="text-muted">{{ 'TOPIC' | translate }}: {{ question.topicName }}</p>
       
       <ul>
         <li *ngFor="let ans of question.answerOptions">
-          {{ ans.text }} [Correct? {{ ans.isCorrect }}]
+          {{ ans.text }} [{{ 'CORRECT' | translate }} {{ ans.isCorrect }}]
         </li>
       </ul>
 
       <!-- Кнопки Edit/Delete (только если logged in и isAdmin) -->
       <div *ngIf="authService.isLoggedIn() && authService.isAdmin()">
-        <button class="btn btn-secondary me-2" (click)="toggleEdit()">Edit</button>
-        <button class="btn btn-danger" (click)="deleteQuestion()">Delete</button>
+        <button class="btn btn-secondary me-2" (click)="toggleEdit()">
+          {{ 'EDIT' | translate }}
+        </button>
+        <button class="btn btn-danger" (click)="deleteQuestion()">
+          {{ 'DELETE' | translate }}
+        </button>
       </div>
     </div>
 
     <!-- Режим редактирования (тоже только Admin) -->
     <div *ngIf="isEditing">
       <div class="mb-3">
-        <label>Question Text</label>
+        <label>{{ 'QUESTION_TEXT' | translate }}</label>
         <input type="text" class="form-control" [(ngModel)]="question.text" />
       </div>
       <ul>
@@ -31,19 +35,25 @@
           <input type="text" [(ngModel)]="ans.text" />
           <label>
             <input type="checkbox" [(ngModel)]="ans.isCorrect" />
-            IsCorrect?
+            {{ 'IS_CORRECT' | translate }}
           </label>
         </li>
       </ul>
-      <button class="btn btn-sm btn-outline-primary mb-2" (click)="addAnswer()">+ Add Answer</button>
+      <button class="btn btn-sm btn-outline-primary mb-2" (click)="addAnswer()">
+        {{ 'ADD_ANSWER' | translate }}
+      </button>
       <br />
 
-      <button class="btn btn-success me-2" (click)="saveChanges()">Save</button>
-      <button class="btn btn-secondary" (click)="toggleEdit()">Cancel</button>
+      <button class="btn btn-success me-2" (click)="saveChanges()">
+        {{ 'SAVE' | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="toggleEdit()">
+        {{ 'CANCEL' | translate }}
+      </button>
     </div>
   </div>
 
   <ng-template #loadingBlock>
-    Loading question...
+    {{ 'LOADING_QUESTION' | translate }}
   </ng-template>
 </div>

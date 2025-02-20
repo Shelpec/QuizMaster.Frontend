@@ -23,6 +23,7 @@ import { TestAnalyticsComponent } from '../analytics/test-analytics.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 import { jsPDF } from 'jspdf';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-test-list',
@@ -31,7 +32,8 @@ import { jsPDF } from 'jspdf';
     CommonModule,
     FormsModule,
     TestAnalyticsComponent,
-    NgxChartsModule
+    NgxChartsModule,
+    TranslateModule
   ],
   templateUrl: './test-list.component.html',
   styleUrls: ['./test-list.component.scss']

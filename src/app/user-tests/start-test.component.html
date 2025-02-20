@@ -1,10 +1,10 @@
 <div class="container mt-4" *ngIf="userTest; else loading">
-  <h3>Passing Test (UserTestId={{ userTest.id }}, TestId={{ userTest.testId }})</h3>
-  <p>DateCreated: {{ userTest.dateCreated }}</p>
+  <h3>{{ 'PASSING_TEST' | translate: { userTestId: userTest.id, testId: userTest.testId } }}</h3>
+  <p>{{ 'DATE_CREATED' | translate }}: {{ userTest.dateCreated }}</p>
 
   <!-- Если есть лимит времени => показываем таймер -->
   <div *ngIf="timeLeftSeconds > 0 && !timeIsUp" class="alert alert-info">
-    Time left: {{ formatTimeLeft() }}
+    {{ 'TIME_LEFT' | translate }}: {{ formatTimeLeft() }}
   </div>
 
   <!-- Форма вопросов - скрыта, если timeIsUp=true (показана модалка) -->
@@ -62,7 +62,7 @@
           <ng-container *ngSwitchCase="3">
             <textarea rows="2"
                       class="form-control"
-                      placeholder="Type your text answer..."
+                      placeholder="{{ 'TYPE_YOUR_TEXT_ANSWER' | translate }}"
                       [(ngModel)]="openTextMap[utq.id]"
                       name="openText_{{ utq.id }}"
                       [ngClass]="getOpenTextClass(utq.id)">
@@ -71,7 +71,7 @@
 
           <!-- Иное -->
           <ng-container *ngSwitchDefault>
-            <p class="text-muted">Unknown questionType: {{ utq.questionType }}</p>
+            <p class="text-muted">{{ 'UNKNOWN_QUESTION_TYPE' | translate: { questionType: utq.questionType } }}</p>
           </ng-container>
 
         </ng-container>
@@ -79,33 +79,35 @@
     </div>
 
     <div class="d-flex gap-3 mt-3">
-      <button class="btn btn-primary" (click)="onFinish()">Finish & Check</button>
+      <button class="btn btn-primary" (click)="onFinish()">
+        {{ 'FINISH_AND_CHECK' | translate }}
+      </button>
     </div>
   </form>
 
   <!-- Если есть результат и не Survey -->
   <div class="mt-4" *ngIf="checkResult && !userTest?.isSurveyTopic">
-    <h4>Check Result</h4>
+    <h4>{{ 'CHECK_RESULT' | translate }}</h4>
     <p>
-      CorrectCount: {{ checkResult.correctCount }}
+      {{ 'CORRECT_COUNT' | translate }}: {{ checkResult.correctCount }}
       / {{ checkResult.totalQuestions }}
     </p>
     <button class="btn btn-outline-secondary" (click)="goBackToTests()">
-      Back to Tests
+      {{ 'BACK_TO_TESTS' | translate }}
     </button>
   </div>
 
   <!-- Если Survey -->
   <div class="mt-4" *ngIf="surveySaved && userTest?.isSurveyTopic">
-    <h4>Answers successfully saved (Survey)</h4>
+    <h4>{{ 'ANSWERS_SAVED' | translate }}</h4>
     <button class="btn btn-outline-secondary" (click)="goBackToTests()">
-      Back to Tests
+      {{ 'BACK_TO_TESTS' | translate }}
     </button>
   </div>
 </div>
 
 <ng-template #loading>
-  <p>Loading test...</p>
+  <p>{{ 'LOADING_TEST' | translate }}</p>
 </ng-template>
 
 <!-- Модалка, отображается, когда timeIsUp=true -->
@@ -114,14 +116,16 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Time is up!</h5>
+        <h5 class="modal-title">{{ 'TIME_IS_UP' | translate }}</h5>
       </div>
       <div class="modal-body">
-        <p>The time for this test has ended. Please finish now.</p>
+        <p>{{ 'TIME_ENDED_MSG' | translate }}</p>
       </div>
       <div class="modal-footer">
         <!-- Эта кнопка вызывает onFinish() => сохраняются ответы, проверяются -> скрываем модалку -->
-        <button class="btn btn-primary" (click)="onFinish()">Finish &amp; Check</button>
+        <button class="btn btn-primary" (click)="onFinish()">
+          {{ 'FINISH_AND_CHECK' | translate }}
+        </button>
       </div>
     </div>
   </div>

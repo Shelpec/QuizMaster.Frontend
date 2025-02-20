@@ -13,6 +13,7 @@ import {
 
 import { UserTestAnswersService } from '../services/user-test-answers.service';
 import { QuestionTypeEnum } from '../enums/question-type.enum';
+import { TranslateModule } from '@ngx-translate/core';
 
 interface ICheckResultMap {
   [questionId: number]: {
@@ -25,7 +26,7 @@ interface ICheckResultMap {
 @Component({
   selector: 'app-start-test',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './start-test.component.html',
   styleUrls: ['./start-test.component.scss']
 })

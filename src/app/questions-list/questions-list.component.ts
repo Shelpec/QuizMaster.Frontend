@@ -13,10 +13,12 @@ import { Question } from '../dtos/question.dto';
 import { TopicDto } from '../dtos/topic.dto';
 import { CategoryDto } from '../dtos/category.dto';
 
+// Важно: 
+import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-questions-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './questions-list.component.html',
   styleUrls: ['./questions-list.component.scss']
 })
