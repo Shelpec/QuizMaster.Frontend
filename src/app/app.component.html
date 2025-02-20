@@ -50,6 +50,12 @@
       </div>
     </div>
 
+        <!-- В app.component.html, рядом с кнопкой "темы" -->
+    <select class="form-select w-auto ms-3" #langSelect (change)="switchLanguage(langSelect.value)">
+      <option value="en">English</option>
+      <option value="ru">Русский</option>
+    </select>
+
     <!-- Переключатель тем (справа) -->
     <button class="btn btn-outline-light ms-3" (click)="themeService.toggleTheme()">
       {{ themeService.getCurrentTheme() === 'light-theme' ? 'Dark Theme' : 'Light Theme' }}

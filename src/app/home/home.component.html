@@ -1,6 +1,6 @@
 <!-- src/app/home/home.component.html -->
 
-<!-- ===================== HERO-БЛОК с ГРАДИЕНТОМ (слегка скруглённый низ) ===================== -->
+<!-- ===================== HERO-БЛОК ===================== -->
 <div
   class="container-fluid text-light py-5 mb-5"
   style="
@@ -13,30 +13,35 @@
     <div class="row align-items-center">
       <!-- Текстовая часть -->
       <div class="col-md-6">
-        <h1 class="display-4 fw-bold mb-3">Добро пожаловать в QuizMasterAPI!</h1>
+        <!-- Было: "Добро пожаловать в QuizMasterAPI!"
+             Станет: -->
+        <h1 class="display-4 fw-bold mb-3">
+          {{ 'HOME_TITLE' | translate }}
+        </h1>
+
+        <!-- Было: статическое описание
+             Станет: -->
         <p class="fs-5">
-          Платформа для создания и прохождения тестов. Вы можете:
-          <strong>создавать тесты</strong>,
-          добавлять вопросы, следить за результатами и многое другое!
+          {{ 'HOME_DESCRIPTION' | translate }}
         </p>
 
         <!-- Если пользователь НЕ авторизован -->
         <div *ngIf="!authService.isLoggedIn()">
           <button class="btn btn-outline-light btn-lg me-3" routerLink="/login">
-            Войти
+            {{ 'LOGIN' | translate }}
           </button>
           <button class="btn btn-light btn-lg" routerLink="/register">
-            Регистрация
+            {{ 'REGISTER' | translate }}
           </button>
         </div>
 
         <!-- Если пользователь авторизован -->
         <div *ngIf="authService.isLoggedIn()">
           <button class="btn btn-success btn-lg me-3" routerLink="/tests">
-            Перейти к тестам
+            {{ 'GO_TO_TESTS' | translate }}
           </button>
           <button class="btn btn-warning btn-lg" routerLink="/history-user-tests">
-            Моя история тестов
+            {{ 'MY_HISTORY' | translate }}
           </button>
         </div>
       </div>
@@ -54,7 +59,7 @@
   </div>
 </div>
 
-<!-- ===================== Секция «Почему выбрать QuizMasterAPI?» (с небольшим скруглением) ===================== -->
+<!-- ===================== Секция «Почему выбрать QuizMasterAPI?» ===================== -->
 <div
   class="container my-5"
   style="
@@ -72,23 +77,29 @@
       />
     </div>
     <div class="col-md-6">
-      <h2 class="fw-bold mb-3">Почему стоит выбрать QuizMasterAPI?</h2>
+      <!-- Было: "Почему стоит выбрать QuizMasterAPI?"
+           Станет: -->
+      <h2 class="fw-bold mb-3">
+        {{ 'WHY_CHOOSE' | translate }}
+      </h2>
+
+      <!-- Вместо списка на русском, можно тоже заменить пунктами переводов,
+           но если это слишком мелкие детали, можно пока оставить на русском.
+           Или выносим каждую строку в свои ключи. Пример: -->
       <ul class="fs-5">
-        <li>Удобное управление вопросами и тестами</li>
-        <li>Гибкая настройка доступа (приватные / публичные тесты)</li>
-        <li>Система аналитики и истории прохождений</li>
-        <li>Возможность скачивать PDF-отчёты по тестам</li>
+        <li>{{ 'CONVENIENT_MANAGEMENT' | translate }}</li>
+        <li>{{ 'FLEXIBLE_ACCESS' | translate }}</li>
+        <li>{{ 'ANALYTICS_SYSTEM' | translate }}</li>
+        <li>{{ 'PDF_DOWNLOADS' | translate }}</li>
       </ul>
       <p>
-        Мы используем ASP.NET Core и Angular, чтобы создать удобный сервис
-        для эффективной оценки знаний и управления тестами. Вы сможете быстро
-        запускать и контролировать процессы обучения или аттестации.
+        {{ 'BUILT_WITH' | translate }}
       </p>
     </div>
   </div>
 </div>
 
-<!-- ===================== Секция «Как пользоваться?» с анимациями (AOS) ===================== -->
+<!-- ===================== Секция «Как пользоваться?» ===================== -->
 <div
   class="container-fluid text-light py-5"
   style="
@@ -98,22 +109,21 @@
   "
 >
   <div class="container my-5">
-    <h2 class="fw-bold text-center mb-4" data-aos="zoom-in">Как пользоваться?</h2>
+    <h2 class="fw-bold text-center mb-4" data-aos="zoom-in">
+      {{ 'HOW_TO_USE' | translate }}
+    </h2>
 
-    <!-- Пять шагов в одной строке (или переносятся при маленьком экране).
-         Каждый шаг - Card с анимацией при прокрутке. -->
-
-    <!-- row-cols-1 row-cols-md-2 row-cols-lg-5 => 5 колонок на широком экране -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4 justify-content-center">
-
       <!-- Шаг 1 -->
       <div class="col">
         <div class="card p-3 h-100" data-aos="flip-left" style="border-radius: 15px;">
           <div class="card-body">
-            <h5 class="fw-bold">1. Зарегистрируйтесь или войдите</h5>
+            <h5 class="fw-bold">{{ 'STEP_1' | translate }}</h5>
             <p class="mb-0" style="font-size: 0.95rem;">
-              Если нет учётной записи – «Регистрация».
-              Если уже есть – «Войти».
+              <!-- Если хотите детально, можно вынести в ключ.
+                   Пока пример короткого текста. -->
+              If you don't have an account – {{ 'REGISTER' | translate }}.
+              If you already have one – {{ 'LOGIN' | translate }}.
             </p>
           </div>
         </div>
@@ -123,10 +133,9 @@
       <div class="col">
         <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="100" style="border-radius: 15px;">
           <div class="card-body">
-            <h5 class="fw-bold">2. Создание вопросов и тестов</h5>
+            <h5 class="fw-bold">{{ 'STEP_2' | translate }}</h5>
             <p class="mb-0" style="font-size: 0.95rem;">
-              Перейдите в «Вопросы» или «Тесты». Нажмите «Создать»,
-              укажите тему, приватность, время и т.д.
+              {{ 'CREATE_QUESTIONS' | translate }}
             </p>
           </div>
         </div>
@@ -136,10 +145,9 @@
       <div class="col">
         <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="200" style="border-radius: 15px;">
           <div class="card-body">
-            <h5 class="fw-bold">3. Прохождение теста</h5>
+            <h5 class="fw-bold">{{ 'STEP_3' | translate }}</h5>
             <p class="mb-0" style="font-size: 0.95rem;">
-              На странице «Тесты» нажмите «Start», ответьте на вопросы,
-              итоговый балл появится сразу.
+              {{ 'START_TEST' | translate }}
             </p>
           </div>
         </div>
@@ -149,10 +157,9 @@
       <div class="col">
         <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="300" style="border-radius: 15px;">
           <div class="card-body">
-            <h5 class="fw-bold">4. Просмотр истории</h5>
+            <h5 class="fw-bold">{{ 'STEP_4' | translate }}</h5>
             <p class="mb-0" style="font-size: 0.95rem;">
-              В «Моя история тестов» – все ваши прохождения:
-              дата, результат, время. Удобно для анализа.
+              {{ 'TEST_HISTORY' | translate }}
             </p>
           </div>
         </div>
@@ -162,23 +169,24 @@
       <div class="col">
         <div class="card p-3 h-100" data-aos="flip-left" data-aos-delay="400" style="border-radius: 15px;">
           <div class="card-body">
-            <h5 class="fw-bold">5. PDF-отчёты</h5>
+            <h5 class="fw-bold">{{ 'STEP_5' | translate }}</h5>
             <p class="mb-0" style="font-size: 0.95rem;">
-              Если вы Админ, можно скачать PDF со статистикой:
-              сложные вопросы, рейтинг игроков и многое другое.
+              {{ 'PDF_REPORTS' | translate }}
             </p>
           </div>
         </div>
       </div>
 
-    </div><!-- /row -->
+    </div>
   </div>
 </div>
+
+<!-- ... и т.д., можно заменить и оставшиеся строки ... -->
 
 <!-- ===================== Секция «Возможности QuizMasterAPI» (6 карточек) ===================== -->
 <div class="container-fluid py-5 text-light" style="background-color: #343a40; border-radius: 15px;">
   <div class="container">
-    <h2 class="fw-bold mb-4 text-center">Возможности QuizMasterAPI</h2>
+    <h2 class="fw-bold mb-4 text-center">{{ 'FEATURES_TITLE' | translate }}</h2>
 
     <!-- Немного CSS для flip-cards; общее -->
     <style>
@@ -237,10 +245,9 @@
             </div>
             <!-- BACK -->
             <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
-              <h5 class="fw-bold text-dark mb-2">Создание теста за пару кликов</h5>
+              <h5 class="fw-bold text-dark mb-2">{{ 'FEATURE_1' | translate }}</h5>
               <p class="text-dark text-center" style="font-size: 0.95rem;">
-                Задайте название, тему, время. Смешанный, опросник,
-                случайные вопросы — всё очень просто!
+                {{ 'FEATURE_1_DESC' | translate }}
               </p>
             </div>
           </div>
@@ -261,10 +268,9 @@
             </div>
             <!-- BACK -->
             <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
-              <h5 class="fw-bold text-dark mb-2">Простое добавление вопросов</h5>
+              <h5 class="fw-bold text-dark mb-2">{{ 'FEATURE_2' | translate }}</h5>
               <p class="text-dark text-center" style="font-size: 0.95rem;">
-                Создавайте варианты ответов, открытые или множественные.
-                Удаляйте, редактируйте — настраивайте под себя!
+                {{ 'FEATURE_2_DESC' | translate }}
               </p>
             </div>
           </div>
@@ -285,10 +291,9 @@
             </div>
             <!-- BACK -->
             <div class="flip-card-back d-flex flex-column justify-content-center align-items-center">
-              <h5 class="fw-bold text-dark mb-2">Удобный интерфейс прохождения</h5>
+              <h5 class="fw-bold text-dark mb-2">{{ 'FEATURE_3' | translate }}</h5>
               <p class="text-dark text-center" style="font-size: 0.95rem;">
-                Последовательные или все вопросы сразу,
-                итоговый результат виден мгновенно!
+                {{ 'FEATURE_3_DESC' | translate }}
               </p>
             </div>
           </div>
@@ -314,11 +319,9 @@
             />
           </div>
           <div class="card-body">
-            <h5 class="card-title fw-bold">История прохождений</h5>
+            <h5 class="card-title fw-bold">{{ 'FEATURE_4' | translate }}</h5>
             <p class="card-text">
-              В «Моя история тестов» хранится список попыток,
-              с датой, итоговым баллом и временем. Удобно для анализа
-              и отслеживания прогресса.
+              {{ 'FEATURE_4_DESC' | translate }}
             </p>
           </div>
         </div>
@@ -336,10 +339,9 @@
             />
           </div>
           <div class="card-body">
-            <h5 class="card-title fw-bold">PDF-аналитика</h5>
+            <h5 class="card-title fw-bold">{{ 'FEATURE_5' | translate }}</h5>
             <p class="card-text">
-              Если вы Админ, получите PDF-отчёт: самые сложные вопросы,
-              средний балл, топ-игроки и многое другое — всё под рукой.
+              {{ 'FEATURE_5_DESC' | translate }}
             </p>
           </div>
         </div>
@@ -357,11 +359,9 @@
             />
           </div>
           <div class="card-body">
-            <h5 class="card-title fw-bold">Гибкое управление доступом</h5>
+            <h5 class="card-title fw-bold">{{ 'FEATURE_6' | translate }}</h5>
             <p class="card-text">
-              Сделайте тест публичным или ограничьте пользователей.
-              Отлично подходит для учебных курсов, корпоративных тренингов
-              и аттестаций.
+              {{ 'FEATURE_6_DESC' | translate }}
             </p>
           </div>
         </div>

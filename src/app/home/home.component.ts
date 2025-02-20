@@ -3,6 +3,8 @@ import { Component } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 import * as AOS from 'aos';
+
+// Важно: 
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
