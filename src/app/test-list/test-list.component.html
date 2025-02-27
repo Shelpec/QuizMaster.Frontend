@@ -1,120 +1,114 @@
-<!-- src/app/test-list/test-list.component.html -->
-
 <div class="tests-gradient py-4 mb-4">
-  <div class="container">
+  <div class="container-fluid p-0">
+    
+    <!-- Гифка (будет скрываться при скролле) -->
+    <div class="gif-container" id="gifContainer">
+      <img src="assets/images/DR.gif" alt="Loading GIF" class="gif-img">
+    </div>
 
-    <h2 class="mb-3 text-center">{{'TESTS_LIST_TITLE' | translate }}</h2>
+    
+    <div class="container">
+      <h2 class="mb-3 text-center">{{'TESTS_LIST_TITLE' | translate }}</h2>
 
-    <!-- Кнопка Create Test (Wizard) -->
-    <button
-      class="btn btn-primary mb-3"
-      (click)="openCreateTestWizard()"
-      *ngIf="authService.isLoggedIn() && authService.isAdmin()"
-      data-aos="fade-up"
-    >
-    {{'CREATE_TEST' | translate }}
-    </button>
+      <!-- Кнопка Create Test (Wizard) -->
+      <button class="btn btn-primary mb-3"
+              (click)="openCreateTestWizard()"
+              *ngIf="authService.isLoggedIn() && authService.isAdmin()"
+              data-aos="fade-up">
+        {{'CREATE_TEST' | translate }}
+      </button>
+    </div>
 
     <!-- Полупрозрачная панель со списком -->
-    <div class="tests-panel p-3" data-aos="fade-up" data-aos-delay="100">
-      <!-- Список тестов -->
-      <ul class="list-group">
-        <li class="list-group-item test-item d-flex flex-column align-items-start"
-            *ngFor="let t of tests"
-            data-aos="fade-up"
-            data-aos-delay="200">
-
-          <div class="d-flex w-100 justify-content-between">
-            <!-- Левая часть -->
-            <div class="flex-grow-1">
-              <h5>{{ t.name }}</h5>
-              <p>
+    <div class="container tests-panel p-3" data-aos="fade-up" data-aos-delay="100">
+      <div class="row justify-content-center">
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-4" *ngFor="let t of tests">
+          
+          <!-- Карточка теста -->
+          <div class="test-card shadow-lg p-3 rounded text-center" data-aos="fade-up">
+            <div class="card-body">
+              <h5 class="card-title">{{ t.name }}</h5>
+              <p class="card-text">
                 <strong>{{'COUNT' | translate }}:</strong> {{ t.countOfQuestions }}<br />
                 <strong>{{'TOPIC' | translate }}:</strong> {{ t.topicName || '---' }}<br />
                 <strong>{{'CREATED' | translate }}:</strong> {{ t.createdAt }}<br />
-                <strong>{{'PRIVATE' | translate }}</strong> {{ t.isPrivate ? ('YES' | translate ) : ('NO' | translate ) }}<br />
-                <strong>{{'RANDOM' | translate }}</strong> {{ t.isRandom ? ('YES' | translate ) : ('NO' | translate ) }}<br />
+                <strong>{{'PRIVATE' | translate }}:</strong> {{ t.isPrivate ? ('YES' | translate ) : ('NO' | translate ) }}<br />
+                <strong>{{'RANDOM' | translate }}:</strong> {{ t.isRandom ? ('YES' | translate ) : ('NO' | translate ) }}<br />
                 <strong>{{'TEST_TYPE' | translate }}:</strong> {{ t.testType }}<br />
                 <strong>{{'TIME_LIMIT' | translate }}:</strong>
                 {{ t.timeLimitMinutes != null ? (t.timeLimitMinutes + ' ' + ('MINUTES' | translate)) : '---' }}
               </p>
+
+              <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button class="btn btn-secondary btn-sm"
+                        (click)="openEditModal(t)"
+                        *ngIf="authService.isLoggedIn() && authService.isAdmin()">
+                  {{'EDIT' | translate }}
+                </button>
+
+                <button class="btn btn-info btn-sm"
+                        *ngIf="authService.isLoggedIn() && authService.isAdmin() && !t.isRandom"
+                        (click)="openManageQuestions(t)">
+                  {{'MANAGE_QUESTIONS' | translate }}
+                </button>
+
+                <button class="btn btn-danger btn-sm"
+                        (click)="deleteTest(t)"
+                        *ngIf="authService.isLoggedIn() && authService.isAdmin()">
+                  {{'DELETE' | translate }}
+                </button>
+
+                <button class="btn btn-success btn-sm"
+                        (click)="onStartTest(t)"
+                        *ngIf="authService.isLoggedIn()">
+                  {{'START' | translate }}
+                </button>
+
+                <button class="btn btn-warning btn-sm"
+                        (click)="downloadPdf(t)">
+                  {{'DOWNLOAD_PDF' | translate }}
+                </button>
+
+                <button class="btn btn-primary btn-sm"
+                        *ngIf="authService.isAdmin()"
+                        (click)="toggleShowAnalytics(t.id)">
+                  {{ shownAnalytics[t.id] ? ('HIDE_ANALYTICS' | translate ) : ('SHOW_ANALYTICS' | translate ) }}
+                </button>
+              </div>
+
+              <!-- Блок аналитики -->
+              <div *ngIf="shownAnalytics[t.id]" class="p-2 mt-2 w-100 border rounded bg-light">
+                <app-test-analytics [testId]="t.id"></app-test-analytics>
+              </div>
             </div>
+          </div> <!-- Конец карточки теста -->
+          
+        </div>
+      </div>
+    </div> <!-- /tests-panel -->
 
-            <!-- Правая часть: кнопки (выравнены по правому краю) -->
-            <div class="d-flex flex-column gap-2 ms-auto text-end">
-              <button class="btn btn-sm btn-secondary"
-                      (click)="openEditModal(t)"
-                      *ngIf="authService.isLoggedIn() && authService.isAdmin()">
-                      {{'EDIT' | translate }}
-              </button>
-
-              <button class="btn btn-sm btn-info"
-                      *ngIf="authService.isLoggedIn() && authService.isAdmin() && !t.isRandom"
-                      (click)="openManageQuestions(t)">
-                      {{'MANAGE_QUESTIONS' | translate }}
-              </button>
-
-              <button class="btn btn-sm btn-danger"
-                      (click)="deleteTest(t)"
-                      *ngIf="authService.isLoggedIn() && authService.isAdmin()">
-                      {{'DELETE' | translate }}
-              </button>
-
-              <button class="btn btn-sm btn-success"
-                      (click)="onStartTest(t)"
-                      *ngIf="authService.isLoggedIn()">
-                      {{'START' | translate }}
-              </button>
-
-              <button class="btn btn-sm btn-warning"
-                      (click)="downloadPdf(t)">
-                      {{'DOWNLOAD_PDF' | translate }}
-              </button>
-
-              <button class="btn btn-sm btn-primary"
-                      *ngIf="authService.isAdmin()"
-                      (click)="toggleShowAnalytics(t.id)">
-                {{ shownAnalytics[t.id] ? ('HIDE_ANALYTICS' | translate ) : ('SHOW_ANALYTICS' | translate ) }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Блок аналитики (СНИЗУ теста) -->
-          <div *ngIf="shownAnalytics[t.id]" class="p-2 mt-2 w-100 border rounded bg-light">
-            <app-test-analytics [testId]="t.id"></app-test-analytics>
-          </div>
-
-        </li>
-      </ul>
-
-
-      <!-- Пагинация -->
-      <div class="mt-3 d-flex justify-content-center align-items-center">
-        <button
-          class="btn btn-outline-light me-2"
-          (click)="prevPage()"
-          [disabled]="currentPage <= 1"
-        >
+    <!-- Пагинация -->
+    <div class="mt-3 d-flex justify-content-center align-items-center">
+      <button class="btn btn-outline-light me-2"
+              (click)="prevPage()"
+              [disabled]="currentPage <= 1">
         {{'PREV' | translate }}
-        </button>
-        <span class="me-2">
-          {{'PAGE' | translate }} {{ currentPage }} / {{ totalPages }}
-        </span>
-        <button
-          class="btn btn-outline-light"
-          (click)="nextPage()"
-          [disabled]="currentPage >= totalPages"
-        >
+      </button>
+      <span class="me-2">
+        {{'PAGE' | translate }} {{ currentPage }} / {{ totalPages }}
+      </span>
+      <button class="btn btn-outline-light"
+              (click)="nextPage()"
+              [disabled]="currentPage >= totalPages">
         {{'NEXT' | translate }}
-        </button>
-      </div>
-      <div class="text-muted text-center mt-2">
-        {{'TOTAL_ITEMS' | translate }}: {{ totalItems }}
-      </div>
-    </div><!-- /tests-panel -->
+      </button>
+    </div>
+    <div class="text-muted text-center mt-2">
+      {{'TOTAL_ITEMS' | translate }}: {{ totalItems }}
+    </div>
+  </div> <!-- /container -->
+</div> <!-- /tests-gradient -->
 
-  </div><!-- /container -->
-</div><!-- /tests-gradient -->
 
 <!-- ================== Modal: Edit Test ================== -->
 <div

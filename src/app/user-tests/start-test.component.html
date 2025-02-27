@@ -6,6 +6,7 @@
   <div *ngIf="timeLeftSeconds > 0 && !timeIsUp" class="alert alert-info">
     {{ 'TIME_LEFT' | translate }}: {{ formatTimeLeft() }}
   </div>
+  
 
   <!-- Форма вопросов - скрыта, если timeIsUp=true (показана модалка) -->
   <form *ngIf="!timeIsUp">

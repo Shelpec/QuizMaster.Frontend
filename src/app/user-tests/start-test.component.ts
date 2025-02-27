@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 
 import {
   UserTestsService,
@@ -14,6 +15,7 @@ import {
 import { UserTestAnswersService } from '../services/user-test-answers.service';
 import { QuestionTypeEnum } from '../enums/question-type.enum';
 import { TranslateModule } from '@ngx-translate/core';
+import Aos from 'aos';
 
 interface ICheckResultMap {
   [questionId: number]: {
@@ -22,6 +24,8 @@ interface ICheckResultMap {
     selectedAnswers: string[];
   };
 }
+
+
 
 @Component({
   selector: 'app-start-test',
@@ -51,10 +55,25 @@ export class StartTestComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userTestsService: UserTestsService,
-    private userTestAnswersService: UserTestAnswersService
-  ) {}
+    private userTestAnswersService: UserTestAnswersService,
+    public translate: TranslateService // <-- добавляем
+  ) {
+    // Загружаем сохранённый язык из localStorage или устанавливаем 'ru' по умолчанию
+    const savedLang = localStorage.getItem('language') || 'ru';
+    this.translate.setDefaultLang('ru');
+    this.translate.use(savedLang);
+  }
 
+  
   ngOnInit(): void {
+    const savedExpireTime = localStorage.getItem('testExpireTime');
+    if (savedExpireTime) {
+      this.initTimer(savedExpireTime);
+    }
+  
+    // Инициализация AOS-анимаций после загрузки
+    Aos.init();
+  
     this.route.paramMap.subscribe(params => {
       const testIdStr = params.get('testId');
       if (testIdStr) {
@@ -62,8 +81,16 @@ export class StartTestComponent implements OnInit, OnDestroy {
         this.startTest(testId);
       }
     });
+  
+    // Проверяем, что `translate` инициализирован
+    if (this.translate) {
+      this.translate.setDefaultLang('ru');
+      this.translate.use(localStorage.getItem('language') || 'ru');
+    } else {
+      console.error("TranslateService не инициализирован!");
+    }
   }
-
+  
   ngOnDestroy(): void {
     // Очищаем таймер при уходе со страницы
     if (this.timerInterval) {
@@ -78,17 +105,20 @@ export class StartTestComponent implements OnInit, OnDestroy {
   startTest(testId: number) {
     this.userTestsService.startTest(testId).subscribe({
       next: (data) => {
+        if (!data) {
+          alert('Ошибка: тест не найден!');
+          this.router.navigate(['/tests']);
+          return;
+        }
+  
         this.userTest = data;
-
-        // Инициализация выбранных ответов
         data.userTestQuestions.forEach(utq => {
           this.selectedAnswersMap[utq.id] = new Set<number>();
           if (utq.questionType === QuestionTypeEnum.OpenText) {
             this.openTextMap[utq.id] = '';
           }
         });
-
-        // Запускаем таймер, если есть лимит времени
+  
         if (data.expireTime) {
           this.initTimer(data.expireTime);
         }
@@ -96,9 +126,11 @@ export class StartTestComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Ошибка при старте теста', err);
         alert('Ошибка при старте теста: ' + err.error);
+        this.router.navigate(['/tests']);
       }
     });
   }
+  
 
   /**
    * Запускаем обратный отсчёт до expireTime
@@ -108,16 +140,20 @@ export class StartTestComponent implements OnInit, OnDestroy {
     const now = new Date();
     const diffMs = expireDate.getTime() - now.getTime();
     this.timeLeftSeconds = Math.max(0, Math.floor(diffMs / 1000));
-
+  
+    // Сохраняем время в localStorage
+    localStorage.setItem('testExpireTime', expireTimeStr);
+  
     this.timerInterval = setInterval(() => {
       this.timeLeftSeconds--;
       if (this.timeLeftSeconds <= 0) {
         this.timeLeftSeconds = 0;
-        this.timeIsUp = true; // открываем модалку
+        this.timeIsUp = true;
         clearInterval(this.timerInterval);
       }
     }, 1000);
   }
+    
 
   /**
    * Форматированный вывод времени (ч:мин:сек или мин:сек).
@@ -194,12 +230,13 @@ export class StartTestComponent implements OnInit, OnDestroy {
   private saveAnswers(onSuccess?: () => void) {
     if (!this.userTest) return;
     const userTestId = this.userTest.id;
-
+  
     const answers: UserAnswerSubmitDto[] = [];
-
+  
     for (const utq of this.userTest.userTestQuestions) {
+      if (!utq) continue; // Проверяем, что вопрос не undefined
+  
       if (utq.questionType === QuestionTypeEnum.OpenText) {
-        // open text
         const text = this.openTextMap[utq.id] ?? '';
         answers.push({
           userTestQuestionId: utq.id,
@@ -207,15 +244,14 @@ export class StartTestComponent implements OnInit, OnDestroy {
           userTextAnswer: text
         });
       } else {
-        // single/multiple/survey
-        const chosenIds = Array.from(this.selectedAnswersMap[utq.id]);
+        const chosenIds = Array.from(this.selectedAnswersMap[utq.id] ?? []);
         answers.push({
           userTestQuestionId: utq.id,
           selectedAnswerOptionIds: chosenIds
         });
       }
     }
-
+  
     this.userTestAnswersService.saveAnswers(userTestId, answers).subscribe({
       next: () => {
         if (onSuccess) onSuccess();
@@ -223,7 +259,7 @@ export class StartTestComponent implements OnInit, OnDestroy {
       error: (err) => console.error('Error saving answers', err)
     });
   }
-
+  
   /**
    * GET /checkAnswers
    */
@@ -317,4 +353,9 @@ export class StartTestComponent implements OnInit, OnDestroy {
   goBackToTests() {
     this.router.navigate(['/tests']);
   }
+
+  getAssetPath(relativePath: string): string {
+    return `/${relativePath}`; // Всегда берём путь от корня
+  }
+  
 }

@@ -5,7 +5,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { routes } from './app.routes';
 import { HttpClient } from '@angular/common/http';
 import { importProvidersFrom } from '@angular/core';
-
+import { APP_BASE_HREF } from '@angular/common';
 // Функция для загрузки переводов
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, "./assets/i18n/", ".json");
@@ -15,8 +15,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-
-    // Добавляем поддержку ngx-translate в Standalone API
     importProvidersFrom(
       TranslateModule.forRoot({
         loader: {
@@ -26,6 +24,7 @@ export const appConfig: ApplicationConfig = {
         }
       })
     ),
-    TranslateService // Добавляем сам сервис перевода
+    TranslateService,
+    { provide: APP_BASE_HREF, useValue: '/' } // <-- Фикс пути
   ]
 };

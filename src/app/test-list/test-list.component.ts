@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,9 +41,10 @@ import { TranslateModule } from '@ngx-translate/core';
 export class TestListComponent implements OnInit {
   tests: TestDto[] = [];
 
+  gifVisible = true;
   // Пагинация
   currentPage = 1;
-  pageSize = 5;
+  pageSize = 10;
   totalPages = 1;
   totalItems = 0;
 
@@ -700,6 +701,15 @@ export class TestListComponent implements OnInit {
         alert('Не удалось скачать PDF.');
       }
     });
+  }
+
+  @HostListener('window:scroll', [])
+  onScroll() {
+    const scrollTop = window.scrollY;
+    const gifContainer = document.getElementById('gifContainer');
+    if (gifContainer) {
+      gifContainer.style.opacity = (scrollTop < 100) ? '1' : '0';
+    }
   }
   
 }

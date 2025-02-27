@@ -4,62 +4,45 @@
 
     <!-- Логотип + Название -->
     <a class="navbar-brand d-flex align-items-center" routerLink="/">
-      <!-- Логотип. Подложите картинку в assets/logo.png, или любой URL -->
-      <img
-        src="assets/logo.png"
-        alt="Logo"
-        width="32"
-        height="32"
-        class="me-2 rounded"
-      />
+      <!-- Меняем путь на абсолютный -->
+      <img src="/assets/logo.png" alt="Logo" width="32" height="32" class="me-2 rounded" />
       <span>QuizMaster</span>
     </a>
 
-    <!-- Кнопка «гамбургер» для мобильных (Bootstrap) -->
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarNavAltMarkup"
-      aria-controls="navbarNavAltMarkup"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" 
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav ms-auto">
-        <!-- Ссылки -->
         <a class="nav-link" routerLink="/">{{ 'NAV_HOME' | translate }}</a>
         <a class="nav-link" routerLink="/tests">{{ 'NAV_TESTS' | translate }}</a>
         <a class="nav-link" routerLink="/questions">{{ 'NAV_QUESTIONS' | translate }}</a>
+        <a class="nav-link" routerLink="/start-test">{{ 'NAV_START_TEST' | translate }}</a>
 
-        <!-- Если НЕ авторизован -->
         <ng-container *ngIf="!authService.isLoggedIn(); else loggedIn">
           <a class="nav-link" routerLink="/login">{{ 'NAV_LOGIN' | translate }}</a>
           <a class="nav-link" routerLink="/register">{{ 'NAV_REGISTER' | translate }}</a>
         </ng-container>
 
-        <!-- Если авторизован -->
         <ng-template #loggedIn>
           <a class="nav-link" routerLink="/history-user-tests">{{ 'NAV_HISTORY' | translate }}</a>
-          <!-- Logout -->
           <a class="nav-link text-danger" (click)="logout()">{{ 'NAV_LOGOUT' | translate }}</a>
         </ng-template>
       </div>
     </div>
 
-        <!-- В app.component.html, рядом с кнопкой "темы" -->
+    <!-- Выбор языка -->
     <select class="form-select w-auto ms-3" #langSelect (change)="switchLanguage(langSelect.value)">
-      <option value="ru">Русский</option>
-      <option value="en">English</option>
-      <option value="kz">Қазақша</option>
+      <option *ngFor="let lang of ['ru', 'en', 'kz']" [value]="lang" [selected]="lang === translate.currentLang">
+        {{ lang === 'ru' ? 'Русский' : lang === 'en' ? 'English' : 'Қазақша' }}
+      </option>
     </select>
 
-    <!-- Переключатель тем (справа) -->
+    <!-- Переключатель тем -->
     <button class="btn btn-outline-light ms-3" (click)="themeService.toggleTheme()">
-      {{ themeService.getCurrentTheme() === 'light-theme' ? ( 'NAV_DARK_THEME' | translate ) :( 'NAV_LIGHT_THEME' | translate ) }}
+      {{ themeService.getCurrentTheme() === 'light-theme' ? ( 'NAV_DARK_THEME' | translate ) : ( 'NAV_LIGHT_THEME' | translate ) }}
     </button>
   </div>
 </nav>
